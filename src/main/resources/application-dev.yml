@@ -1,0 +1,58 @@
+spring:
+  application:
+    cors:
+      allowed-origins: http://localhost:3000
+
+  datasource:
+    url: jdbc:h2:mem:walletdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  flyway:
+    enabled: false
+
+  mail:
+    host: ${EMAIL_HOSTNAME:}
+    port: ${EMAIL_PORT:587}
+    username: ${EMAIL_USERNAME:}
+    password: ${EMAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          from: mail@localhost.com
+          auth: false
+          ssl:
+            enable: false
+          starttls:
+            enable: false
+    protocol: smtp
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:3000}
+backend:
+  url: ${BACKEND_URL:http://localhost:8080/api/v1}
+crypto:
+  price-api: ${CRYPTO_PRICE_API:}
+  klines-api: ${CRYPTO_KLINES_API:https://api.binance.com/api/v3/klines}
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+    forward-headers-strategy: framework

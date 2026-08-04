@@ -1,0 +1,63 @@
+spring:
+  application:
+    cors:
+      allowed-origins: http://localhost:3000
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      leak-detection-threshold: 20000  # 20 seconds
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    #    repair-on-migrate: false
+    enabled: false
+
+  mail:
+    host: ${EMAIL_HOSTNAME:smtp.zoho.com}
+    port: ${EMAIL_PORT:587}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+            required: false
+          ssl:
+            enable: true
+            trust: smtp.zoho.com
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          from: ${EMAIL_FROM}
+        transport:
+          protocol: smtp
+        debug: false
+
+frontend:
+  url: ${FRONTEND_URL}
+backend:
+  url: ${BACKEND_URL}
+crypto:
+  price-api: ${CRYPTO_PRICE_API:}
+  klines-api: ${CRYPTO_KLINES_API:https://api.binance.com/api/v3/klines}
+server:
+  forward-headers-strategy: framework
+
