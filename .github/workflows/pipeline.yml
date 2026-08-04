@@ -1,4 +1,4 @@
-name: SwanTradeCapital Frontend CI/CD Pipeline
+name: Frontend CI/CD Pipeline
 
 on:
   push:
