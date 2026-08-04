@@ -60,6 +60,7 @@ public class AuthController {
             String jti = jwtUtil.extractJti(header.substring(7));
             if (jti != null) sessionRepository.deleteByJti(jti);
         }
+        
         return ResponseEntity.noContent().build();
     }
 }
