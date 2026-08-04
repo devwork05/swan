@@ -1,7 +1,7 @@
 spring:
   application:
     cors:
-      allowed-origins: http://localhost:3000
+      allowed-origins: ${FRONTEND_URL}
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
