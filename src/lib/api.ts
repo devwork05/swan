@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-const API_BASE =  `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1 ` || "http://localhost:8080/api/v1";
+const API_BASE =  `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1` || "http://localhost:8080/api/v1";
 
 export const http = axios.create({
   baseURL: API_BASE,
