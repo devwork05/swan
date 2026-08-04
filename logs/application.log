@@ -1,6 +1,0 @@
-2026-08-04T00:35:33.632+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2h20m24s708ms).
-2026-08-04T03:41:32.344+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3h5m58s714ms).
-2026-08-04T05:42:01.044+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2h28s700ms).
-2026-08-04T07:22:23.527+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h40m22s476ms).
-2026-08-04T07:40:24.232+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Retrograde clock change detected (housekeeper delta=29s858ms), soft-evicting connections from pool.
-2026-08-04T11:14:27.346+01:00  WARN 43119 --- [firm] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Retrograde clock change detected (housekeeper delta=29s860ms), soft-evicting connections from pool.
