@@ -34,7 +34,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col lg:ml-[280px]">
         <ImpersonationBanner />
         <UserTopbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="min-w-0 flex-1 p-4 text-secondary lg:p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 text-secondary lg:p-6 ">{children}</main>
       </div>
 
       <ChatWidget />
