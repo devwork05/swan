@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, clearAuth, type AuthResponse } from "@/lib/api";
@@ -27,8 +27,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const qc = useQueryClient();
 
-  // Only fire /auth/me if we have a stored token. Guests skip the call.
-  const hasToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+  // Track token in state so the provider re-renders when login/logout writes
+  // to localStorage. Otherwise `enabled: hasToken` stays stale forever.
+  const [hasToken, setHasToken] = useState<boolean>(
+    typeof window !== "undefined" && !!localStorage.getItem("token"),
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sync = () => setHasToken(!!localStorage.getItem("token"));
+    window.addEventListener("storage", sync);
+    window.addEventListener("swan.auth", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("swan.auth", sync);
+    };
+  }, []);
 
   const query = useQuery({
     queryKey: ["auth", "me"],

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
 const NAV_ITEMS = [
   { label: "HOME", href: "/" },
@@ -31,14 +32,16 @@ const LANGUAGES = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const logo = useBrandLogo();
+  const { companyName } = usePublicSettings();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-brand-border/60 bg-white dark:bg-card dark:bg-[#0b0f19] dark:border-[#2a314a]">
       <div className="mx-auto flex h-[72px] max-w-[1280px] items-center gap-6 px-5 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center" aria-label="Swan Trade Capital">
+        <Link href="/" className="flex shrink-0 items-center" aria-label={companyName}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo.png" alt="Swan Trade Capital" className="h-[31px] w-auto" />
+          <img src={logo} alt={companyName} className="h-[31px] w-auto" />
         </Link>
 
         {/* Desktop nav */}

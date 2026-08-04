@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api, saveAuth } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function LoginForm() {
   const router = useRouter();
+  const qc = useQueryClient();
   // Bounce already-authenticated users straight to their dashboard.
   useAuth({ middleware: "guest" });
 
@@ -21,9 +23,17 @@ export default function LoginForm() {
     mutationFn: () => api.auth.login({ email, password }),
     onSuccess: (response) => {
       saveAuth(response);
-      router.push(response.user.role === "ADMIN" ? "/admin/dashboard" : "/dashboard");
+      // Seed the /auth/me cache so guards see the user immediately (before the
+      // refetch fires), otherwise the dashboard layout bounces us back to /login.
+      qc.setQueryData(["auth", "me"], response.user);
+      toast.success(`Welcome back, ${response.user.fullName.split(" ")[0]}!`);
+      router.replace(response.user.role === "ADMIN" ? "/admin/dashboard" : "/dashboard");
     },
-    onError: (err: Error) => setError(err.message || "Login failed. Please try again."),
+    onError: (err: Error) => {
+      const msg = err.message || "Login failed. Please try again.";
+      setError(msg);
+      toast.error(msg);
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

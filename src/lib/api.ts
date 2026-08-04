@@ -595,6 +595,7 @@ export function saveAuth(response: AuthResponse) {
   if (typeof window === "undefined") return;
   localStorage.setItem("token", response.token);
   localStorage.setItem("user", JSON.stringify(response.user));
+  window.dispatchEvent(new Event("swan.auth"));
 }
 
 export function getAuth(): AuthResponse | null {
@@ -613,6 +614,7 @@ export function clearAuth() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+  window.dispatchEvent(new Event("swan.auth"));
 }
 
 /* ---------- Query keys (centralized to avoid typos) ---------- */

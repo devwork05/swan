@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
 const FEATURES = [
   {
@@ -16,13 +19,23 @@ const FEATURES = [
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const logo = useBrandLogo();
+  const { companyName } = usePublicSettings();
   return (
     <main className="auth-dots relative flex min-h-screen flex-col bg-[#f4f6fb] dark:bg-[#0b0f19] lg:flex-row">
-      {/* Left brand panel */}
-      <div className="relative flex w-full flex-col px-6 py-8 sm:px-12 lg:w-1/2 lg:justify-center lg:px-16">
+      {/* Mobile-only compact logo bar so the form is the first thing users see. */}
+      <div className="flex items-center justify-center border-b border-line/60 bg-white/60 py-4 backdrop-blur dark:bg-[#0b0f19]/60 lg:hidden">
+        <Link href="/" aria-label={companyName} className="inline-flex items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo} alt={companyName} className="h-8 w-auto" />
+        </Link>
+      </div>
+
+      {/* Left brand panel — desktop only. */}
+      <div className="relative hidden w-full flex-col px-6 py-8 sm:px-12 lg:flex lg:w-1/2 lg:justify-center lg:px-16">
         <Link href="/" className="absolute left-6 top-8 sm:left-12 lg:left-16" aria-label="Back to home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo.png" alt="Swan Trade Capital" className="h-10 w-auto" />
+          <img src={logo} alt={companyName} className="h-10 w-auto" />
         </Link>
 
         <div className="mx-auto mt-24 flex w-full max-w-[520px] flex-col items-center text-center lg:mt-0">
@@ -49,7 +62,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <h1 className="font-montserrat text-[28px] font-bold text-brand-navy dark:text-primary dark:text-white sm:text-[34px]">
-            Welcome to Swan Trade Capital
+            Welcome to {companyName}
           </h1>
           <p className="mt-4 max-w-[440px] text-[15px] leading-[1.7] text-brand-gray dark:text-muted dark:text-slate-400">
             Our platform offers secure trading, real-time market data, and
@@ -77,13 +90,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right form panel */}
-      <div className="flex w-full flex-col items-center justify-center px-5 py-12 lg:w-1/2 lg:py-8">
+      <div className="flex w-full flex-1 flex-col items-center justify-center px-5 pb-16 pt-6 lg:w-1/2 lg:py-8">
         {children}
       </div>
 
-      {/* Copyright */}
-      <p className="absolute bottom-5 left-0 right-0 text-center text-[12.5px] text-[#99a0ac]">
-        © {new Date().getFullYear()} Swan Trade Capital. All rights reserved.
+      {/* Copyright — stays at the bottom on mobile too via normal flow. */}
+      <p className="w-full pb-5 text-center text-[12.5px] text-[#99a0ac] lg:absolute lg:bottom-5 lg:left-0 lg:right-0">
+        © {new Date().getFullYear()} {companyName}. All rights reserved.
       </p>
     </main>
   );

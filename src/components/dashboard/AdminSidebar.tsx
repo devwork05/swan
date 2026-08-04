@@ -13,6 +13,7 @@ import {
   Shield,
   Wallet,
 } from "lucide-react";
+import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
 const ITEMS = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -33,6 +34,8 @@ export default function AdminSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const logo = useBrandLogo();
+  const { companyName } = usePublicSettings();
 
   return (
     <>
@@ -49,7 +52,7 @@ export default function AdminSidebar({
       >
         <Link href="/" className="flex items-center gap-2 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo.png" alt="Swan Trade Capital" className="h-[28px] w-auto" />
+          <img src={logo} alt={companyName} className="h-[28px] w-auto" />
         </Link>
 
         <div className="mt-6 flex items-center gap-3 rounded-xl border bg-elevated p-3">

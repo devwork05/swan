@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePublicSettings } from "@/lib/usePublicSettings";
 
 function useInView<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
@@ -42,6 +43,7 @@ function CountUp({ target, start, duration = 1600 }: { target: number; start: bo
 
 export default function Awards() {
   const { ref, inView } = useInView<HTMLDivElement>();
+  const { companyName } = usePublicSettings();
 
   return (
     <section className="bg-brand-red">
@@ -52,7 +54,7 @@ export default function Awards() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/awards-list.png"
-              alt="Swan Trade Capital awards"
+              alt={`${companyName} awards`}
               className="w-full object-contain"
               draggable={false}
             />
@@ -66,7 +68,7 @@ export default function Awards() {
             </h2>
             <p className="mt-5 max-w-[460px] text-[17px] leading-[1.65] text-white/85">
               With dozens of accolades and awards won over the years, discover
-              for yourself why many traders choose Swan Trade Capital.
+              for yourself why many traders choose {companyName}.
             </p>
             <a
               href="#"

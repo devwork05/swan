@@ -18,6 +18,7 @@ import {
   Users,
   Headphones,
 } from "lucide-react";
+import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
 const SECTIONS = [
   {
@@ -63,6 +64,8 @@ export default function UserSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const logo = useBrandLogo();
+  const { companyName } = usePublicSettings();
 
   return (
     <>
@@ -82,7 +85,7 @@ export default function UserSidebar({
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo.png" alt="Swan Trade Capital" className="h-[28px] w-auto" />
+          <img src={logo} alt={companyName} className="h-[28px] w-auto" />
         </Link>
 
         {/* User card */}

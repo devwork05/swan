@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import COUNTRIES from "@/data/countries";
 import { api, saveAuth } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
@@ -38,6 +39,7 @@ const inputIcon = (
 
 export default function RegisterForm() {
   const router = useRouter();
+  const qc = useQueryClient();
   // Bounce already-authenticated users straight to their dashboard.
   useAuth({ middleware: "guest" });
 
@@ -67,9 +69,17 @@ export default function RegisterForm() {
       }),
     onSuccess: (response) => {
       saveAuth(response);
-      router.push("/dashboard");
+      // Seed the /auth/me cache so the dashboard layout sees the new user
+      // immediately instead of bouncing back to /login.
+      qc.setQueryData(["auth", "me"], response.user);
+      toast.success(`Account created — welcome, ${firstName || response.user.fullName}!`);
+      router.replace(response.user.role === "ADMIN" ? "/admin/dashboard" : "/dashboard");
     },
-    onError: (err: Error) => setError(err.message || "Registration failed. Please try again."),
+    onError: (err: Error) => {
+      const msg = err.message || "Registration failed. Please try again.";
+      setError(msg);
+      toast.error(msg);
+    },
   });
   const loading = registerMutation.isPending;
 

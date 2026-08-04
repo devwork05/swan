@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
 const COLUMNS: { title: string; links: string[] }[] = [
   {
@@ -31,24 +34,26 @@ const COLUMNS: { title: string; links: string[] }[] = [
 ];
 
 export default function Footer() {
+  const logo = useBrandLogo();
+  const { companyName, address, contactEmail } = usePublicSettings();
   return (
     <footer className="border-t border-brand-border/70 bg-white dark:bg-card">
       <div className="mx-auto max-w-[1280px] px-5 py-14 lg:px-8 lg:py-16">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_2.6fr]">
           {/* Brand */}
           <div>
-            <Link href="/" aria-label="Swan Trade Capital">
+            <Link href="/" aria-label={companyName}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/logo.png" alt="Swan Trade Capital" className="h-[34px] w-auto" />
+              <img src={logo} alt={companyName} className="h-[34px] w-auto" />
             </Link>
             <p className="mt-5 max-w-[300px] text-[13px] leading-[1.7] text-brand-gray dark:text-muted">
-              Company Registration no. 12767/2018 License number MC03/2018
+              {address}
             </p>
             <a
-              href="mailto:info@swantradecapital.com"
+              href={`mailto:${contactEmail}`}
               className="mt-3 inline-block text-[14px] font-medium text-brand-red hover:underline"
             >
-              info@swantradecapital.com
+              {contactEmail}
             </a>
           </div>
 
@@ -89,7 +94,7 @@ export default function Footer() {
           </p>
           <div className="mt-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <p className="text-[13px] text-brand-gray dark:text-muted">
-              © {new Date().getFullYear()} Swan Trade Capital. All rights reserved.
+              © {new Date().getFullYear()} {companyName}. All rights reserved.
             </p>
             <p className="text-[12px] text-[#99a0ac]">
               Prices are for demonstration purposes only.
