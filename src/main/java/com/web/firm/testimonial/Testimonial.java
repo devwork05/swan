@@ -41,7 +41,7 @@ public class Testimonial {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String quote;
 
-    /** 1..5. Renders as filled stars on the card. */
+    /** 1..5. Renders as filled stars on the card.*/
     @Column(nullable = false)
     @ColumnDefault("5")
     @Builder.Default
