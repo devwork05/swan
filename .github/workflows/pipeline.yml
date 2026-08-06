@@ -2,16 +2,12 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - frontend
     paths:
-      - 'src/**'
-      - 'public/**'
-      - '*.json'
-      - '*.ts'
-      - '*.mjs'
-      - 'Dockerfile'
-      - 'docker-compose.yml'
-      - '.github/workflows/*.yml'
+      - "**"
+      - ".github/workflows/*.yml"
 
 jobs:
   test:
