@@ -37,9 +37,8 @@ export default function Header() {
             <Link
               key={item.label}
               href={item.href}
-              className={`font-montserrat text-[13px] font-semibold tracking-[0.06em] transition-colors hover:text-brand-red ${
-                i === 0 ? "text-brand-red" : "text-brand-deepnavy dark:text-slate-200"
-              }`}
+              className={`font-montserrat text-[13px] font-semibold tracking-[0.06em] transition-colors hover:text-brand-red ${i === 0 ? "text-brand-red" : "text-brand-deepnavy dark:text-slate-200"
+                }`}
             >
               {item.label}
             </Link>
@@ -53,13 +52,13 @@ export default function Header() {
           {/* CTAs — visible from 500px up (also mirrored in the mobile menu). */}
           <Link
             href="/register"
-            className="btn-primary hidden !px-4 !py-[10px] !text-[12px] xs:inline-flex lg:!px-5 lg:!py-[11px] lg:!text-[13px]"
+            className="btn-primary  hidden !px-4 !py-[10px] !text-[12px] xs:inline-flex lg:!px-5 lg:!py-[11px] lg:!text-[13px] max-[500px]:hidden"
           >
             GET STARTED
           </Link>
           <Link
             href="/login"
-            className="btn-outline hidden !px-3 !py-[9px] !text-[12px] xs:inline-flex lg:!px-4 lg:!py-[10px] lg:!text-[13px]"
+            className="btn-outline hidden !px-3 !py-[9px] !text-[12px] xs:inline-flex lg:!px-4 lg:!py-[10px] lg:!text-[13px] max-[500px]:hidden"
           >
             LOG IN
             <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
@@ -94,9 +93,8 @@ export default function Header() {
                 key={item.label}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`rounded px-2 py-3 font-montserrat text-[14px] font-semibold tracking-[0.05em] ${
-                  i === 0 ? "text-brand-red" : "text-brand-deepnavy dark:text-slate-200"
-                }`}
+                className={`rounded px-2 py-3 font-montserrat text-[14px] font-semibold tracking-[0.05em] ${i === 0 ? "text-brand-red" : "text-brand-deepnavy dark:text-slate-200"
+                  }`}
               >
                 {item.label}
               </Link>
