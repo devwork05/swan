@@ -79,7 +79,7 @@ export default function Markets() {
       <div className="mx-auto max-w-[1280px] px-5 py-16 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-[640px] text-center">
           <span className="eyebrow-chip">MARKETS &amp; INSTRUMENTS</span>
-          <h2 className="mt-5 font-montserrat text-[32px] font-bold leading-[1.12] text-brand-maroon sm:text-[42px]">
+          <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon sm:text-[36px] md:text-[42px]">
             BUILD A BALANCED BOOK
           </h2>
           <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">

@@ -63,7 +63,7 @@ export default function Awards() {
           {/* Text */}
           <div>
             <span className="eyebrow-chip eyebrow-chip--on-red">AWARDED BROKER</span>
-            <h2 className="mt-5 font-montserrat text-[32px] font-bold leading-[1.12] text-white sm:text-[42px]">
+            <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-white sm:text-[36px] md:text-[42px]">
               ACHIEVEMENTS IN NUMBERS
             </h2>
             <p className="mt-5 max-w-[460px] text-[17px] leading-[1.65] text-white/85">

@@ -14,6 +14,14 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
+    tab: "LET THE EXPERTS LEAD",
+    eyebrow: "YOU JUST EARN",
+    title: "LET PROFESSIONAL TRADERS DO THE WORK",
+    sub: "Maximize your returns with zero efforts, we connect you to seasoned traders, replicating their strategies in real time.",
+    buttons: [{ label: "OPEN ACCOUNT", primary: true }],
+    media: { type: "video", src: "/assets/hero-video.mp4", alt: "Let the experts lead" },
+  },
+  {
     tab: "PLATFORM OVERVIEW",
     eyebrow: "AI-POWERED INVESTING",
     title: "TRADE SMARTER WITH INTELLIGENCE",
@@ -96,7 +104,7 @@ export default function Hero() {
                 {/* Text */}
                 <div className="max-w-[560px]">
                   <span className="eyebrow-chip slide-in-up">{slide.eyebrow}</span>
-                  <h1 className="slide-in-up-delay mt-6 font-montserrat text-[40px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[52px] lg:text-[58px]">
+                  <h1 className="slide-in-up-delay mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[44px] md:text-[52px] lg:text-[58px]">
                     {slide.title}
                   </h1>
                   <p className="slide-in-up-delay mt-6 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">

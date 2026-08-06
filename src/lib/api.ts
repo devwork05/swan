@@ -463,6 +463,24 @@ export interface ReferralSummary {
   referrals: Referral[];
 }
 
+/* ---------- Testimonials ---------- */
+
+export interface Testimonial {
+  id: number;
+  name: string;
+  role?: string | null;
+  avatarUrl?: string | null;
+  username?: string | null;
+  quote: string;
+  rating: number;
+  displayOrder: number;
+  published: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type TestimonialInput = Omit<Testimonial, "id" | "createdAt" | "updatedAt">;
+
 /* ---------- API surface ---------- */
 
 const get = <T>(url: string) => http.get<T>(url).then((r) => r.data);
@@ -515,6 +533,9 @@ export const api = {
     prices: () => get<Crypto[]>("/crypto/prices"),
     klines: (symbol: string, interval = "1h", limit = 200) =>
       get<Kline[]>(`/crypto/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}`),
+  },
+  testimonials: {
+    list: () => get<Testimonial[]>("/testimonials"),
   },
   settings: {
     public: () => get<PublicSettings>("/settings"),
@@ -586,6 +607,13 @@ export const api = {
       get: () => get<PlatformSettings>("/admin/settings"),
       update: (data: UpdateSettingsRequest) => patch<PlatformSettings>("/admin/settings", data),
     },
+    testimonials: {
+      list: () => get<Testimonial[]>("/admin/testimonials"),
+      create: (data: TestimonialInput) => post<Testimonial>("/admin/testimonials", data),
+      update: (id: string | number, data: Partial<TestimonialInput>) =>
+        patch<Testimonial>(`/admin/testimonials/${id}`, data),
+      remove: (id: string | number) => del<void>(`/admin/testimonials/${id}`),
+    },
   },
 };
 
@@ -637,6 +665,7 @@ export const qk = {
     subscriptions: ["admin", "plans", "subscriptions"] as const,
     methods: ["admin", "methods"] as const,
     settings: ["admin", "settings"] as const,
+    testimonials: ["admin", "testimonials"] as const,
     user: (id: string) => ["admin", "users", id] as const,
     userSessions: (id: string) => ["admin", "users", id, "sessions"] as const,
     userReferrals: (id: string) => ["admin", "users", id, "referrals"] as const,
@@ -648,4 +677,5 @@ export const qk = {
   sessions: ["sessions"] as const,
   cryptoPrices: ["crypto", "prices"] as const,
   cryptoKlines: (symbol: string, interval: string) => ["crypto", "klines", symbol, interval] as const,
+  testimonials: ["testimonials"] as const,
 };

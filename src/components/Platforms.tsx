@@ -79,7 +79,7 @@ export default function Platforms() {
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">PROFESSIONAL PLATFORMS</span>
-            <h2 className="mt-5 font-montserrat text-[32px] font-bold leading-[1.12] text-brand-maroon sm:text-[42px]">
+            <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon sm:text-[36px] md:text-[42px]">
               MT4, MT5 &amp; AI INSIGHTS
             </h2>
             <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">

@@ -23,7 +23,7 @@ export default function IBSection() {
         {/* Text */}
         <div>
           <span className="eyebrow-chip">PARTNER WITH US</span>
-          <h2 className="mt-5 font-montserrat text-[32px] font-bold leading-[1.12] text-brand-maroon sm:text-[40px]">
+          <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon sm:text-[32px] md:text-[40px]">
             BECOME AN INTRODUCING BROKER
           </h2>
           <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">

@@ -12,6 +12,7 @@ import {
   Settings,
   Shield,
   Wallet,
+  MessageSquareQuote,
 } from "lucide-react";
 import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
@@ -23,6 +24,7 @@ const ITEMS = [
   { label: "Transactions", href: "/admin/transactions", icon: Repeat },
   { label: "Plans", href: "/admin/plans", icon: FolderOpen },
   { label: "Gateways", href: "/admin/methods", icon: Wallet },
+  { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

@@ -4,6 +4,7 @@ import Features from "@/components/Features";
 import Platforms from "@/components/Platforms";
 import Markets from "@/components/Markets";
 import Awards from "@/components/Awards";
+import Testimonials from "@/components/Testimonials";
 import IBSection from "@/components/IBSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -18,6 +19,7 @@ export default function Home() {
       <Platforms />
       <Markets />
       <Awards />
+      <Testimonials />
       <IBSection />
       <CTASection />
       <Footer />

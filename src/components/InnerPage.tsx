@@ -11,7 +11,7 @@ function Split({ section, flip }: { section: SplitSection; flip?: boolean }) {
       >
         <div className={flip ? "lg:order-2" : ""}>
           <span className="eyebrow-chip">{section.label}</span>
-          <h2 className="mt-5 font-montserrat text-[30px] font-bold leading-[1.12] text-brand-maroon sm:text-[40px]">
+          <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon sm:text-[32px] md:text-[40px]">
             {section.heading}
           </h2>
           <p className="mt-5 max-w-[460px] text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -48,7 +48,7 @@ export default function InnerPage({ data }: { data: InnerPageData }) {
         <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-5 py-14 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-20">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">{data.heroLabel}</span>
-            <h1 className="mt-6 font-montserrat text-[38px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[50px] lg:text-[56px]">
+            <h1 className="mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[42px] md:text-[50px] lg:text-[56px]">
               {data.heroTitle}
             </h1>
             <p className="mt-6 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -87,7 +87,7 @@ export default function InnerPage({ data }: { data: InnerPageData }) {
         <div className="mx-auto max-w-[1280px] px-5 py-16 lg:px-8 lg:py-24">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">{data.processLabel}</span>
-            <h2 className="mt-5 font-montserrat text-[30px] font-bold leading-[1.12] text-brand-maroon sm:text-[40px]">
+            <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon sm:text-[32px] md:text-[40px]">
               {data.processHeading}
             </h2>
             <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">

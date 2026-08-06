@@ -4,6 +4,17 @@ const config: Config = {
   darkMode: "class",
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
+    screens: {
+      // Bespoke very-small breakpoint. Below this the header hides its CTAs
+      // (they still live in the mobile menu). Default Tailwind breakpoints
+      // (sm/md/lg/xl/2xl) are preserved below.
+      xs: "500px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     extend: {
       colors: {
         brand: {
