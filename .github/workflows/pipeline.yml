@@ -10,6 +10,7 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - '.github/workflows/*.yml'
+  workflow_dispatch:
 
 jobs:
   compile:
