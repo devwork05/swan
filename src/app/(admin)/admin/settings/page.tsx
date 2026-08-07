@@ -15,6 +15,7 @@ import {
   Mail,
   Cloud,
   MessageCircle,
+  CreditCard,
 } from "lucide-react";
 import { api, qk, type PlatformSettings, type UpdateSettingsRequest } from "@/lib/api";
 import { AdminCard, PageHeader } from "@/components/dashboard/AdminUI";
@@ -25,6 +26,7 @@ type Tab =
   | "financial"
   | "bonus"
   | "kyc"
+  | "cards"
   | "branding"
   | "email"
   | "cloudinary"
@@ -35,6 +37,7 @@ const TABS: { key: Tab; label: string; icon: React.ComponentType<{ className?: s
   { key: "financial", label: "Financial", icon: DollarSign },
   { key: "bonus", label: "Bonus", icon: Gift },
   { key: "kyc", label: "KYC", icon: ShieldCheck },
+  { key: "cards", label: "Cards", icon: CreditCard },
   { key: "branding", label: "Branding", icon: ImageIcon },
   { key: "email", label: "Email", icon: Mail },
   { key: "cloudinary", label: "Cloudinary", icon: Cloud },
@@ -147,6 +150,77 @@ export default function AdminSettingsPage() {
             <Toggle label="Require KYC before withdrawal" checked={form.kycRequiredForWithdrawal} onChange={(v) => patch("kycRequiredForWithdrawal", v)} />
             <Toggle label="Require email verification" checked={form.verifyEmail} onChange={(v) => patch("verifyEmail", v)} />
             <FieldNumber label="KYC verification fee" value={form.kycFee} onChange={(v) => patch("kycFee", v)} />
+          </div>
+        )}
+
+        {tab === "cards" && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="font-montserrat text-[18px] font-bold text-primary">Card Settings</h2>
+              <p className="text-[12px] text-muted">Configure virtual and physical card settings.</p>
+            </div>
+
+            {/* Enable toggle — highlighted row */}
+            <div className="flex items-center justify-between gap-4 rounded-xl border bg-elevated p-4">
+              <div>
+                <p className="text-[14px] font-semibold text-primary">Enable Card Feature</p>
+                <p className="text-[12px] text-muted">Allow users to create virtual and physical cards.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.enableCardFeature ?? false}
+                onClick={() => patch("enableCardFeature", !(form.enableCardFeature ?? false))}
+                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${
+                  form.enableCardFeature ? "bg-emerald-500" : "bg-slate-500/40"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                    form.enableCardFeature ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MoneyField
+                label="Virtual Card Fee"
+                hint="Fee for creating a virtual card"
+                value={form.virtualCardFee ?? 0}
+                onChange={(v) => patch("virtualCardFee", v)}
+              />
+              <MoneyField
+                label="Physical Card Fee"
+                hint="Fee for ordering a physical card"
+                value={form.physicalCardFee ?? 0}
+                onChange={(v) => patch("physicalCardFee", v)}
+              />
+            </div>
+
+            <div>
+              <label className="text-[12px] text-muted">Card Payment Address</label>
+              <input
+                value={form.cardPaymentAddress ?? ""}
+                onChange={(e) => patch("cardPaymentAddress", e.target.value)}
+                placeholder="0x…"
+                className="mt-1 w-full rounded-md border bg-page px-3 py-2 font-mono text-[13px] text-primary outline-none focus:border-brand-red"
+              />
+              <p className="mt-1 text-[11px] text-muted">Wallet address for card payments and fees.</p>
+            </div>
+
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+              <div className="flex items-center gap-2 text-amber-500">
+                <CreditCard className="h-4 w-4" />
+                <p className="text-[13px] font-semibold">Card Settings Information</p>
+              </div>
+              <ul className="mt-3 space-y-1 text-[12px] text-amber-600 dark:text-amber-400/90">
+                <li>• Virtual cards are digital cards for online payments.</li>
+                <li>• Physical cards are shipped to users&apos; addresses.</li>
+                <li>• Fees are charged when users create new cards.</li>
+                <li>• Payment address should be a valid cryptocurrency wallet address.</li>
+              </ul>
+            </div>
           </div>
         )}
 
@@ -368,5 +442,34 @@ function Toggle({
         className="h-4 w-4 accent-brand-red"
       />
     </label>
+  );
+}
+
+function MoneyField({
+  label,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label className="text-[13px] font-semibold text-primary">{label}</label>
+      <div className="relative mt-1">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-muted">$</span>
+        <input
+          type="number"
+          step="0.01"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          className="w-full rounded-md border bg-page py-2 pl-7 pr-3 text-[13px] text-primary outline-none focus:border-brand-red"
+        />
+      </div>
+      {hint && <p className="mt-1 text-[11px] text-muted">{hint}</p>}
+    </div>
   );
 }

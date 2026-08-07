@@ -17,6 +17,7 @@ import {
   Bot,
   Users,
   Headphones,
+  CreditCard,
 } from "lucide-react";
 import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
@@ -35,6 +36,7 @@ const SECTIONS = [
       { label: "Withdraw", href: "/withdraw", icon: ArrowUpRight },
       { label: "Transactions", href: "/transactions", icon: Repeat },
       { label: "Transfer Funds", href: "/transfer", icon: Send },
+      { label: "Cards", href: "/cards", icon: CreditCard },
     ],
   },
   {

@@ -21,6 +21,7 @@ export const FALLBACKS = {
   contactPhone: "",
   whatsappNumber: "",
   address: "Company Registration no. 12767/2018 License number MC03/2018",
+  cardPaymentAddress: "",
 };
 
 export function usePublicSettings() {
@@ -40,6 +41,10 @@ export function usePublicSettings() {
     darkLogo: data?.siteDarkLogoUrl || FALLBACKS.logo,
     lightLogo: data?.siteLightLogoUrl || FALLBACKS.logo,
     favicon: data?.siteFaviconUrl || FALLBACKS.favicon,
+    enableCardFeature: data?.enableCardFeature ?? false,
+    virtualCardFee: data?.virtualCardFee ?? 0,
+    physicalCardFee: data?.physicalCardFee ?? 0,
+    cardPaymentAddress: data?.cardPaymentAddress || FALLBACKS.cardPaymentAddress,
   };
 }
 

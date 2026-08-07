@@ -29,7 +29,14 @@ export class ApiError extends Error {
 }
 
 /** URL prefixes that don't imply an authenticated session — skip the auto-logout redirect for these. */
-const PUBLIC_PATH_PREFIXES = ["/auth/login", "/auth/register", "/deposit-methods", "/settings"];
+const PUBLIC_PATH_PREFIXES = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/deposit-methods",
+  "/settings",
+];
 
 /** Routes where redirecting to /login on 401 would be a redirect loop. */
 const AUTH_ROUTES = ["/login", "/register"];
@@ -383,6 +390,12 @@ export interface PlatformSettings {
   // Live chat
   liveChatScript?: string;
 
+  // Card feature
+  enableCardFeature?: boolean;
+  virtualCardFee?: number;
+  physicalCardFee?: number;
+  cardPaymentAddress?: string;
+
   lastCron?: string | null;
   updatedAt?: string;
 }
@@ -406,6 +419,10 @@ export interface PublicSettings {
   transferPercent: number;
   kycRequiredForWithdrawal: boolean;
   liveChatScript?: string;
+  enableCardFeature?: boolean;
+  virtualCardFee?: number;
+  physicalCardFee?: number;
+  cardPaymentAddress?: string;
 }
 
 export interface UploadResponse {
@@ -481,6 +498,71 @@ export interface Testimonial {
 
 export type TestimonialInput = Omit<Testimonial, "id" | "createdAt" | "updatedAt">;
 
+/* ---------- Cards ---------- */
+
+export type CardType = "VIRTUAL" | "PHYSICAL";
+
+export type CardStatus =
+  | "PENDING_PAYMENT"
+  | "PAYMENT_PENDING"
+  | "UNDER_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "ISSUED"
+  | "ACTIVATED"
+  | "BLOCKED";
+
+export interface Card {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  userPhone?: string | null;
+  type: CardType;
+  status: CardStatus;
+  cardNumber?: string | null;
+  cvv?: string | null;
+  pin?: string | null;
+  expiryDate?: string | null;
+  paymentTransactionHash?: string | null;
+  shippingAddress?: string | null;
+  trackingNumber?: string | null;
+  rejectionReason?: string | null;
+  adminNotes?: string | null;
+  primary: boolean;
+  issuedAt?: string | null;
+  activatedAt?: string | null;
+  blockedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CardStats {
+  totalCards: number;
+  underReview: number;
+  activated: number;
+  rejected: number;
+  pendingPayment: number;
+  paymentPending: number;
+  approved: number;
+  issued: number;
+}
+
+export interface PagedCards {
+  content: Card[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
+export interface CardSettings {
+  enableCardFeature: boolean;
+  virtualCardFee: number;
+  physicalCardFee: number;
+  cardPaymentAddress?: string | null;
+}
+
 /* ---------- API surface ---------- */
 
 const get = <T>(url: string) => http.get<T>(url).then((r) => r.data);
@@ -494,6 +576,10 @@ export const api = {
     register: (data: RegisterRequest) => post<AuthResponse>("/auth/register", data),
     logout: () => post<void>("/auth/logout"),
     me: () => get<AuthResponse["user"]>("/auth/me"),
+    forgotPassword: (email: string) =>
+      post<{ message: string }>("/auth/forgot-password", { email }),
+    resetPassword: (token: string, newPassword: string) =>
+      post<{ message: string }>("/auth/reset-password", { token, newPassword }),
   },
   wallet: {
     summary: () => get<WalletSummary>("/wallet/summary"),
@@ -536,6 +622,16 @@ export const api = {
   },
   testimonials: {
     list: () => get<Testimonial[]>("/testimonials"),
+  },
+  cards: {
+    list: () => get<Card[]>("/cards"),
+    request: (data: { type: CardType; shippingAddress?: string; termsAccepted?: boolean }) =>
+      post<Card>("/cards", data),
+    submitPayment: (id: number | string, transactionHash: string) =>
+      post<Card>(`/cards/${id}/payment`, { transactionHash }),
+    activate: (id: number | string, pin: string) =>
+      post<Card>(`/cards/${id}/activate`, { pin }),
+    settings: () => get<CardSettings>("/settings/card"),
   },
   settings: {
     public: () => get<PublicSettings>("/settings"),
@@ -614,6 +710,27 @@ export const api = {
         patch<Testimonial>(`/admin/testimonials/${id}`, data),
       remove: (id: string | number) => del<void>(`/admin/testimonials/${id}`),
     },
+    cards: {
+      list: (params?: { search?: string; status?: string; page?: number; size?: number }) => {
+        const q = new URLSearchParams();
+        if (params?.search) q.set("search", params.search);
+        if (params?.status && params.status !== "all") q.set("status", params.status);
+        if (params?.page !== undefined) q.set("page", String(params.page));
+        if (params?.size !== undefined) q.set("size", String(params.size));
+        const qs = q.toString();
+        return get<PagedCards>(`/admin/cards${qs ? `?${qs}` : ""}`);
+      },
+      stats: () => get<CardStats>("/admin/cards/stats"),
+      get: (id: number | string) => get<Card>(`/admin/cards/${id}`),
+      confirmPayment: (id: number | string) => post<Card>(`/admin/cards/${id}/confirm-payment`),
+      approve: (id: number | string, notes?: string) =>
+        post<Card>(`/admin/cards/${id}/approve`, { notes }),
+      reject: (id: number | string, rejectionReason: string) =>
+        post<Card>(`/admin/cards/${id}/reject`, { rejectionReason }),
+      issue: (id: number | string, trackingNumber?: string) =>
+        post<Card>(`/admin/cards/${id}/issue`, { trackingNumber }),
+      remove: (id: number | string) => del<void>(`/admin/cards/${id}`),
+    },
   },
 };
 
@@ -666,6 +783,9 @@ export const qk = {
     methods: ["admin", "methods"] as const,
     settings: ["admin", "settings"] as const,
     testimonials: ["admin", "testimonials"] as const,
+    cards: (search?: string, status?: string) => ["admin", "cards", search ?? "", status ?? "all"] as const,
+    cardStats: ["admin", "cards", "stats"] as const,
+    card: (id: string | number) => ["admin", "cards", id] as const,
     user: (id: string) => ["admin", "users", id] as const,
     userSessions: (id: string) => ["admin", "users", id, "sessions"] as const,
     userReferrals: (id: string) => ["admin", "users", id, "referrals"] as const,
@@ -678,4 +798,6 @@ export const qk = {
   cryptoPrices: ["crypto", "prices"] as const,
   cryptoKlines: (symbol: string, interval: string) => ["crypto", "klines", symbol, interval] as const,
   testimonials: ["testimonials"] as const,
+  myCards: ["cards", "mine"] as const,
+  cardSettings: ["cards", "settings"] as const,
 };
