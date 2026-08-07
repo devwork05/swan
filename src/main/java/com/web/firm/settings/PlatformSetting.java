@@ -160,6 +160,25 @@ public class PlatformSetting {
     @Column(columnDefinition = "TEXT")
     private String liveChatScript;
 
+    // Card feature
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    @Builder.Default
+    private boolean enableCardFeature = false;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    @ColumnDefault("0")
+    @Builder.Default
+    private BigDecimal virtualCardFee = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    @ColumnDefault("0")
+    @Builder.Default
+    private BigDecimal physicalCardFee = BigDecimal.ZERO;
+
+    @Column(length = 200)
+    private String cardPaymentAddress;
+
     // Scheduler bookkeeping
     @Column
     private LocalDateTime lastCron;

@@ -77,6 +77,11 @@ public class SettingsService {
 
         if (req.getLiveChatScript() != null) s.setLiveChatScript(req.getLiveChatScript());
 
+        if (req.getEnableCardFeature() != null) s.setEnableCardFeature(req.getEnableCardFeature());
+        if (req.getVirtualCardFee() != null) s.setVirtualCardFee(req.getVirtualCardFee());
+        if (req.getPhysicalCardFee() != null) s.setPhysicalCardFee(req.getPhysicalCardFee());
+        if (req.getCardPaymentAddress() != null) s.setCardPaymentAddress(req.getCardPaymentAddress());
+
         return repository.save(s);
     }
 }

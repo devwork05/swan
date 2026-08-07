@@ -56,6 +56,12 @@ public class PlatformSettingDto {
 
     private String liveChatScript;
 
+    // Card feature
+    private boolean enableCardFeature;
+    private BigDecimal virtualCardFee;
+    private BigDecimal physicalCardFee;
+    private String cardPaymentAddress;
+
     private LocalDateTime lastCron;
     private LocalDateTime updatedAt;
 
@@ -94,6 +100,10 @@ public class PlatformSettingDto {
                 .cloudinaryApiKey(s.getCloudinaryApiKey())
                 .cloudinaryApiSecret(s.getCloudinaryApiSecret())
                 .liveChatScript(s.getLiveChatScript())
+                .enableCardFeature(s.isEnableCardFeature())
+                .virtualCardFee(s.getVirtualCardFee())
+                .physicalCardFee(s.getPhysicalCardFee())
+                .cardPaymentAddress(s.getCardPaymentAddress())
                 .lastCron(s.getLastCron())
                 .updatedAt(s.getUpdatedAt())
                 .build();

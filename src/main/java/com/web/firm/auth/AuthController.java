@@ -25,6 +25,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserSessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
@@ -60,7 +61,30 @@ public class AuthController {
             String jti = jwtUtil.extractJti(header.substring(7));
             if (jti != null) sessionRepository.deleteByJti(jti);
         }
-        
+
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Send a reset link to the user's email. Always returns 200 to prevent
+     * account enumeration — the response tells the caller a message will be
+     * sent iff the address is registered.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<java.util.Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest req,
+            HttpServletRequest http) {
+        passwordResetService.requestReset(req.getEmail(), http);
+        return ResponseEntity.ok(java.util.Map.of(
+                "message", "If an account exists for that email, a reset link is on its way."));
+    }
+
+    /** Consume a reset token and set a new password. */
+    @PostMapping("/reset-password")
+    public ResponseEntity<java.util.Map<String, String>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest req) {
+        passwordResetService.consumeReset(req.getToken(), req.getNewPassword());
+        return ResponseEntity.ok(java.util.Map.of(
+                "message", "Password updated. You can now sign in with your new password."));
     }
 }

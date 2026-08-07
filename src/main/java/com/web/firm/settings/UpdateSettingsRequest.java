@@ -49,4 +49,10 @@ public class UpdateSettingsRequest {
     private String cloudinaryApiSecret;
 
     private String liveChatScript;
+
+    // Card feature
+    private Boolean enableCardFeature;
+    private BigDecimal virtualCardFee;
+    private BigDecimal physicalCardFee;
+    private String cardPaymentAddress;
 }

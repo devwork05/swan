@@ -38,6 +38,12 @@ public class PublicSettingsDto {
     /** Injected into user-facing pages as-is; admins paste a full <script> from their chat vendor. */
     private String liveChatScript;
 
+    // Card feature (safe to expose so the user page can render fees / payment address).
+    private boolean enableCardFeature;
+    private BigDecimal virtualCardFee;
+    private BigDecimal physicalCardFee;
+    private String cardPaymentAddress;
+
     public static PublicSettingsDto fromEntity(PlatformSetting s) {
         return PublicSettingsDto.builder()
                 .companyName(s.getCompanyName())
@@ -56,6 +62,10 @@ public class PublicSettingsDto {
                 .transferPercent(s.getTransferPercent())
                 .kycRequiredForWithdrawal(s.isKycRequiredForWithdrawal())
                 .liveChatScript(s.getLiveChatScript())
+                .enableCardFeature(s.isEnableCardFeature())
+                .virtualCardFee(s.getVirtualCardFee())
+                .physicalCardFee(s.getPhysicalCardFee())
+                .cardPaymentAddress(s.getCardPaymentAddress())
                 .build();
     }
 }

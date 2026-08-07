@@ -16,4 +16,6 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
     void deleteByJti(String jti);
 
     void deleteByUserAndJtiNot(User user, String jti);
+
+    void deleteByUser(User user);
 }
