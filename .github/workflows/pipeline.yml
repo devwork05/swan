@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-    - 'src/'
-    - 'public/'
-    - '.json'
-    - '.ts'
-    - '.mjs'
-    - 'Dockerfile'
-    - 'docker-compose.yml'
-    - '.github/workflows/.yml'
+      - 'src/**'
+      - 'public/**'
+      - '*.json'
+      - '*.ts'
+      - '*.mjs'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/*.yml'
 
 jobs:
   test:
