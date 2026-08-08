@@ -13,14 +13,20 @@ import { useTheme } from "next-themes";
  * renders empty.
  */
 
+/**
+ * Fallbacks used ONLY when a value hasn't loaded yet. Text values are empty
+ * strings — components should render nothing rather than a "Swan Trade
+ * Capital" placeholder that flashes and then swaps. The logo image is the
+ * only exception since a totally invisible logo looks broken.
+ */
 export const FALLBACKS = {
-  companyName: "Swan Trade Capital",
+  companyName: "",
   logo: "/assets/logo.png",
   favicon: "/assets/logo.png",
-  contactEmail: "info@swantradecapital.com",
+  contactEmail: "",
   contactPhone: "",
   whatsappNumber: "",
-  address: "Company Registration no. 12767/2018 License number MC03/2018",
+  address: "",
   cardPaymentAddress: "",
 };
 

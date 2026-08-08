@@ -19,6 +19,7 @@ import {
 import StatCard from "@/components/dashboard/StatCard";
 import MarketCard from "@/components/dashboard/MarketCard";
 import { useWallet } from "@/lib/useWallet";
+import { useAuth } from "@/lib/AuthContext";
 
 function fmt(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -93,6 +94,10 @@ const MARKETS = [
 
 export default function DashboardPage() {
   const { wallet } = useWallet();
+  const { user } = useAuth();
+  const referralLink = typeof window !== "undefined" && user
+    ? `${window.location.origin}/register?ref=${encodeURIComponent(user.email)}`
+    : "";
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -106,7 +111,9 @@ export default function DashboardPage() {
       {/* Welcome header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-montserrat text-[22px] font-bold text-primary">Welcome back, ede dede!</h1>
+          <h1 className="font-montserrat text-[22px] font-bold text-primary">
+            Welcome back{user?.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}!
+          </h1>
           <p className="mt-1 text-[13px] text-muted">{today}</p>
         </div>
         <Link
@@ -264,12 +271,21 @@ export default function DashboardPage() {
         {/* Right sidebar */}
         <div className="space-y-6">
           {/* Profile card */}
-          <div className="rounded-xl border bg-gradient-to-br from-[#1a2035] to-[#131827] p-5 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-red to-brand-darkred text-xl font-bold text-white">
-              ed
+          <div className="rounded-xl border bg-elevated p-5 text-center dark:bg-gradient-to-br dark:from-[#1a2035] dark:to-[#131827]">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-red to-brand-darkred text-xl font-bold uppercase text-white">
+              {(user?.fullName ?? "")
+                .split(" ")
+                .map((s) => s[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("") || "•"}
             </div>
-            <h3 className="mt-3 font-montserrat text-[16px] font-semibold text-primary">ede dede</h3>
-            <p className="text-[12px] text-muted">Member since Aug 2026</p>
+            <h3 className="mt-3 font-montserrat text-[16px] font-semibold text-primary">{user?.fullName ?? ""}</h3>
+            <p className="text-[12px] text-muted">
+              {user?.createdAt
+                ? `Member since ${new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`
+                : ""}
+            </p>
 
             <div className="mt-5 space-y-2 text-[13px]">
               <div className="flex justify-between text-muted">
@@ -337,10 +353,15 @@ export default function DashboardPage() {
             <div className="mt-1 flex items-center gap-2 rounded-lg bg-elevated p-2">
               <input
                 readOnly
-                value="https://swantradecapital.com/ref/devwork"
+                value={referralLink}
                 className="flex-1 bg-transparent text-[11px] text-secondary outline-none"
               />
-              <button className="flex items-center gap-1 rounded-md bg-brand-red px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-brand-darkred">
+              <button
+                onClick={() => {
+                  if (referralLink) navigator.clipboard.writeText(referralLink);
+                }}
+                className="flex items-center gap-1 rounded-md bg-brand-red px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-brand-darkred"
+              >
                 <Copy className="h-3 w-3" />
                 Copy
               </button>

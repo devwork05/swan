@@ -14,6 +14,10 @@ import {
   Wallet,
   MessageSquareQuote,
   CreditCard,
+  Bitcoin,
+  LineChart,
+  Users2,
+  Bot,
 } from "lucide-react";
 import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
 
@@ -26,6 +30,10 @@ const ITEMS = [
   { label: "Plans", href: "/admin/plans", icon: FolderOpen },
   { label: "Gateways", href: "/admin/methods", icon: Wallet },
   { label: "Cards", href: "/admin/cards", icon: CreditCard },
+  { label: "Crypto", href: "/admin/crypto", icon: Bitcoin },
+  { label: "Orders", href: "/admin/orders", icon: LineChart },
+  { label: "Traders", href: "/admin/traders", icon: Users2 },
+  { label: "Bots", href: "/admin/bots", icon: Bot },
   { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

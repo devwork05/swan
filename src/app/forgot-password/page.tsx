@@ -3,8 +3,8 @@ import AuthLayout from "@/components/AuthLayout";
 import ForgotPasswordForm from "@/components/ForgotPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Swan Trade Capital | Forgot Password",
-  description: "Request a link to reset your Swan Trade Capital password.",
+  title: "Forgot Password",
+  description: "Request a link to reset your password.",
 };
 
 export default function ForgotPasswordPage() {

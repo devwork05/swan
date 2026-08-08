@@ -104,7 +104,7 @@ export default function Hero() {
                 {/* Text */}
                 <div className="max-w-[560px]">
                   <span className="eyebrow-chip slide-in-up">{slide.eyebrow}</span>
-                  <h1 className="slide-in-up-delay mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[44px] md:text-[52px] lg:text-[58px]">
+                  <h1 className="slide-in-up-delay mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon dark:text-white sm:text-[44px] md:text-[52px] lg:text-[58px]">
                     {slide.title}
                   </h1>
                   <p className="slide-in-up-delay mt-6 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -168,8 +168,8 @@ export default function Hero() {
                 key={slide.tab}
                 onClick={() => goTo(i)}
                 className={`whitespace-nowrap rounded-[32px] px-6 py-3.5 font-montserrat text-[12px] font-bold tracking-[0.05em] transition-all ${i === active
-                  ? "bg-[#efefef] text-brand-red"
-                  : "text-brand-deepnavy hover:text-brand-red"
+                  ? "bg-[#efefef] text-brand-red dark:bg-elevated"
+                  : "text-brand-deepnavy hover:text-brand-red dark:text-slate-200 dark:hover:text-brand-red"
                   }`}
               >
                 {slide.tab}

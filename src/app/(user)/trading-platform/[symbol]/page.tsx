@@ -2,7 +2,7 @@
 
 import { use, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -19,10 +19,12 @@ import {
   type ISeriesApi,
   type Time,
 } from "lightweight-charts";
-import { api, qk, type Crypto } from "@/lib/api";
+import { api, qk, type Crypto, type TradeOrder, type TradeOrderSide, type TradeOrderType } from "@/lib/api";
 import { STOCKS } from "@/lib/tradingData";
 import { useWatchlist } from "@/lib/useWatchlist";
-import { useLocalOrders, type OrderSide, type OrderType } from "@/lib/useLocalOrders";
+
+type OrderSide = TradeOrderSide;
+type OrderType = TradeOrderType;
 
 type IntervalKey = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 const INTERVALS: IntervalKey[] = ["1m", "5m", "15m", "1h", "4h", "1d"];
@@ -445,13 +447,38 @@ function OrderPanel({
   price: number;
   availableBalance: number;
 }) {
+  const qc = useQueryClient();
   const [side, setSide] = useState<OrderSide>("BUY");
   const [type, setType] = useState<OrderType>("MARKET");
   const [duration, setDuration] = useState(DURATIONS[0]);
   const [amount, setAmount] = useState<string>("");
   const [limitPrice, setLimitPrice] = useState<string>("");
   const [stopPrice, setStopPrice] = useState<string>("");
-  const { place } = useLocalOrders();
+
+  const placeMut = useMutation({
+    mutationFn: () =>
+      api.orders.place({
+        symbol: pairLabel,
+        side,
+        type,
+        amount: amountNum,
+        price: type === "MARKET" ? undefined : Number(limitPrice),
+        stopPrice: type === "STOP_LIMIT" ? Number(stopPrice) : undefined,
+        duration,
+      }),
+    onSuccess: (order) => {
+      qc.invalidateQueries({ queryKey: ["orders", "mine"] });
+      toast.success(
+        order.status === "FILLED"
+          ? `${side} ${amountNum} ${symbol} filled at ${fmtUsd(Number(order.price ?? price))}`
+          : `${side} ${type.replace("_", " ")} order placed`,
+      );
+      setAmount("");
+      setLimitPrice("");
+      setStopPrice("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const amountNum = Number(amount) || 0;
   const priceNum =
@@ -474,24 +501,7 @@ function OrderPanel({
     if (type === "STOP_LIMIT" && !stopPrice) return toast.error("Enter a stop price");
     if (side === "BUY" && total > availableBalance)
       return toast.error("Insufficient balance");
-
-    place({
-      symbol: pairLabel,
-      side,
-      type,
-      amount: amountNum,
-      price: type === "MARKET" ? undefined : Number(limitPrice),
-      stopPrice: type === "STOP_LIMIT" ? Number(stopPrice) : undefined,
-      duration,
-    });
-    toast.success(
-      type === "MARKET"
-        ? `${side} ${amountNum} ${symbol} filled at ${fmtUsd(price)}`
-        : `${side} ${type.replace("_", " ")} order placed`,
-    );
-    setAmount("");
-    setLimitPrice("");
-    setStopPrice("");
+    placeMut.mutate();
   };
 
   const base = isCrypto ? symbol : symbol;
@@ -720,8 +730,24 @@ function RecentTradesCard({ price }: { price: number }) {
 }
 
 function OpenOrdersCard({ symbol }: { symbol: string }) {
-  const { orders, cancel } = useLocalOrders();
-  const open = orders.filter((o) => o.status === "OPEN" && o.symbol.startsWith(symbol));
+  const qc = useQueryClient();
+  const { data: orders = [] } = useQuery({
+    queryKey: qk.myOrders(),
+    queryFn: () => api.orders.list(),
+    refetchInterval: 30_000,
+  });
+  const cancelMut = useMutation({
+    mutationFn: (id: number) => api.orders.cancel(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders", "mine"] });
+      toast.success("Order cancelled");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const open = orders.filter(
+    (o: TradeOrder) => o.status === "OPEN" && o.symbol.toUpperCase().startsWith(symbol.toUpperCase()),
+  );
+
   return (
     <div className="rounded-2xl border bg-card p-5 shadow-sm">
       <h3 className="font-montserrat text-[15px] font-bold text-primary">Open Orders</h3>
@@ -738,7 +764,11 @@ function OpenOrdersCard({ symbol }: { symbol: string }) {
                 <span className={`font-semibold ${o.side === "BUY" ? "text-emerald-500" : "text-red-500"}`}>
                   {o.side} · {o.type.replace("_", " ")}
                 </span>
-                <button onClick={() => cancel(o.id)} className="text-[11px] text-muted hover:text-brand-red">
+                <button
+                  onClick={() => cancelMut.mutate(o.id)}
+                  disabled={cancelMut.isPending}
+                  className="text-[11px] text-muted hover:text-brand-red disabled:opacity-60"
+                >
                   Cancel
                 </button>
               </div>
@@ -749,13 +779,13 @@ function OpenOrdersCard({ symbol }: { symbol: string }) {
               {o.price != null && (
                 <div className="flex justify-between text-muted">
                   <span>Price</span>
-                  <span className="text-primary">{fmtUsd(o.price)}</span>
+                  <span className="text-primary">{fmtUsd(Number(o.price))}</span>
                 </div>
               )}
               {o.stopPrice != null && (
                 <div className="flex justify-between text-muted">
                   <span>Stop</span>
-                  <span className="text-primary">{fmtUsd(o.stopPrice)}</span>
+                  <span className="text-primary">{fmtUsd(Number(o.stopPrice))}</span>
                 </div>
               )}
             </div>

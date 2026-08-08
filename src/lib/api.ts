@@ -563,6 +563,143 @@ export interface CardSettings {
   cardPaymentAddress?: string | null;
 }
 
+/* ---------- Orders (trading platform) ---------- */
+
+export type TradeOrderSide = "BUY" | "SELL";
+export type TradeOrderType = "MARKET" | "LIMIT" | "STOP_LIMIT";
+export type TradeOrderStatus = "OPEN" | "FILLED" | "CANCELLED" | "REJECTED";
+
+export interface TradeOrder {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  symbol: string;
+  side: TradeOrderSide;
+  type: TradeOrderType;
+  status: TradeOrderStatus;
+  amount: string;
+  price?: string | null;
+  stopPrice?: string | null;
+  duration?: string | null;
+  adminNotes?: string | null;
+  filledAt?: string | null;
+  cancelledAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlaceOrderRequest {
+  symbol: string;
+  side: TradeOrderSide;
+  type: TradeOrderType;
+  amount: number;
+  price?: number;
+  stopPrice?: number;
+  duration?: string;
+}
+
+/* ---------- Copy Trading ---------- */
+
+export interface Trader {
+  id: number;
+  name: string;
+  username: string;
+  avatarUrl?: string | null;
+  winRate: number;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  followers: number;
+  totalProfit: string;
+  minEntry: string;
+  bio?: string | null;
+  published: boolean;
+  sortOrder: number;
+}
+
+export type TraderTradeDirection = "RISE" | "FALL";
+export type TraderTradeResult = "WIN" | "LOSS";
+
+export interface TraderTrade {
+  id: number;
+  traderId: number;
+  pair: string;
+  direction: TraderTradeDirection;
+  result: TraderTradeResult;
+  profit: string;
+  tradedAt: string;
+}
+
+export interface TraderDetail {
+  trader: Trader;
+  recentTrades: TraderTrade[];
+}
+
+export interface CopyFollow {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  traderId: number;
+  traderName: string;
+  traderUsername: string;
+  copyPercent: number;
+  maxPerTrade: string;
+  dailyLimit: string;
+  fundedAmount: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/* ---------- Bot Trading ---------- */
+
+export interface TradingBot {
+  id: number;
+  name: string;
+  strategy?: string | null;
+  description?: string | null;
+  winRate: number;
+  minInvestment: string;
+  performance30d: string;
+  pairs: string[];
+  spark: number[];
+  published: boolean;
+  sortOrder: number;
+}
+
+export type BotAllocationStatus = "ACTIVE" | "STOPPED";
+
+export interface BotAllocation {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  botId: number;
+  botName: string;
+  amount: string;
+  pair: string;
+  status: BotAllocationStatus;
+  seedPnl: string;
+  stoppedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BotTradeRecord {
+  id: number;
+  allocationId: number;
+  botId: number;
+  botName: string;
+  pair: string;
+  direction: TraderTradeDirection;
+  result: TraderTradeResult;
+  profit: string;
+  amount: string;
+  tradedAt: string;
+}
+
 /* ---------- API surface ---------- */
 
 const get = <T>(url: string) => http.get<T>(url).then((r) => r.data);
@@ -632,6 +769,37 @@ export const api = {
     activate: (id: number | string, pin: string) =>
       post<Card>(`/cards/${id}/activate`, { pin }),
     settings: () => get<CardSettings>("/settings/card"),
+  },
+  orders: {
+    list: (symbol?: string) =>
+      get<TradeOrder[]>(`/orders${symbol ? `?symbol=${encodeURIComponent(symbol)}` : ""}`),
+    place: (data: PlaceOrderRequest) => post<TradeOrder>("/orders", data),
+    cancel: (id: number | string) => del<TradeOrder>(`/orders/${id}`),
+  },
+  traders: {
+    list: () => get<Trader[]>("/traders"),
+    get: (id: number | string) => get<TraderDetail>(`/traders/${id}`),
+  },
+  copyTrading: {
+    myFollows: () => get<CopyFollow[]>("/copy-trading/follows"),
+    follow: (traderId: number | string, data?: { copyPercent?: number; maxPerTrade?: number; dailyLimit?: number }) =>
+      post<CopyFollow>(`/copy-trading/${traderId}/follow`, data ?? {}),
+    update: (traderId: number | string, data: { copyPercent?: number; maxPerTrade?: number; dailyLimit?: number; active?: boolean }) =>
+      patch<CopyFollow>(`/copy-trading/${traderId}`, data),
+    fund: (traderId: number | string, amount: number) =>
+      post<CopyFollow>(`/copy-trading/${traderId}/fund`, { amount }),
+    unfollow: (traderId: number | string) => del<void>(`/copy-trading/${traderId}`),
+  },
+  bots: {
+    list: () => get<TradingBot[]>("/bots"),
+  },
+  botTrading: {
+    myAllocations: () => get<BotAllocation[]>("/bot-trading/allocations"),
+    history: () => get<BotTradeRecord[]>("/bot-trading/history"),
+    start: (data: { botId: number; amount: number; pair: string }) =>
+      post<BotAllocation>("/bot-trading/start", data),
+    stop: (allocationId: number | string) =>
+      post<BotAllocation>(`/bot-trading/${allocationId}/stop`),
   },
   settings: {
     public: () => get<PublicSettings>("/settings"),
@@ -731,6 +899,72 @@ export const api = {
         post<Card>(`/admin/cards/${id}/issue`, { trackingNumber }),
       remove: (id: number | string) => del<void>(`/admin/cards/${id}`),
     },
+    crypto: {
+      list: () => get<Crypto[]>("/admin/crypto"),
+      create: (data: Partial<Crypto> & { symbol: string; name: string }) =>
+        post<Crypto>("/admin/crypto", data),
+      update: (id: number | string, data: Partial<Crypto>) =>
+        patch<Crypto>(`/admin/crypto/${id}`, data),
+      remove: (id: number | string) => del<void>(`/admin/crypto/${id}`),
+      refresh: () =>
+        post<{ message: string; inserted: number; updated: number; skipped: number }>(
+          "/admin/crypto/refresh",
+        ),
+    },
+    orders: {
+      list: (search?: string, status?: string) => {
+        const q = new URLSearchParams();
+        if (search) q.set("search", search);
+        if (status && status !== "all") q.set("status", status);
+        const qs = q.toString();
+        return get<TradeOrder[]>(`/admin/orders${qs ? `?${qs}` : ""}`);
+      },
+      fill: (id: number | string, fillPrice?: number) =>
+        post<TradeOrder>(`/admin/orders/${id}/fill`, { fillPrice }),
+      reject: (id: number | string, reason?: string) =>
+        post<TradeOrder>(`/admin/orders/${id}/reject`, { reason }),
+      update: (id: number | string, data: { adminNotes?: string; status?: TradeOrderStatus }) =>
+        patch<TradeOrder>(`/admin/orders/${id}`, data),
+      remove: (id: number | string) => del<void>(`/admin/orders/${id}`),
+    },
+    traders: {
+      list: () => get<Trader[]>("/admin/traders"),
+      create: (data: Partial<Trader>) => post<Trader>("/admin/traders", data),
+      update: (id: number | string, data: Partial<Trader>) =>
+        patch<Trader>(`/admin/traders/${id}`, data),
+      remove: (id: number | string) => del<void>(`/admin/traders/${id}`),
+      trades: (traderId: number | string) => get<TraderTrade[]>(`/admin/traders/${traderId}/trades`),
+      addTrade: (traderId: number | string, data: {
+        pair: string;
+        direction: TraderTradeDirection;
+        result: TraderTradeResult;
+        profit: number;
+        tradedAt?: string;
+      }) => post<TraderTrade>(`/admin/traders/${traderId}/trades`, data),
+      removeTrade: (tradeId: number | string) => del<void>(`/admin/trader-trades/${tradeId}`),
+      follows: () => get<CopyFollow[]>("/admin/copy-follows"),
+      removeFollow: (id: number | string) => del<void>(`/admin/copy-follows/${id}`),
+    },
+    bots: {
+      list: () => get<TradingBot[]>("/admin/bots"),
+      create: (data: Partial<TradingBot>) => post<TradingBot>("/admin/bots", data),
+      update: (id: number | string, data: Partial<TradingBot>) =>
+        patch<TradingBot>(`/admin/bots/${id}`, data),
+      remove: (id: number | string) => del<void>(`/admin/bots/${id}`),
+      allocations: () => get<BotAllocation[]>("/admin/bot-allocations"),
+      removeAllocation: (id: number | string) => del<void>(`/admin/bot-allocations/${id}`),
+      trades: (allocationId: number | string) =>
+        get<BotTradeRecord[]>(`/admin/bot-allocations/${allocationId}/trades`),
+      addTrade: (allocationId: number | string, data: {
+        pair?: string;
+        direction: TraderTradeDirection;
+        result: TraderTradeResult;
+        profit: number;
+        amount?: number;
+        tradedAt?: string;
+      }) => post<BotTradeRecord>(`/admin/bot-allocations/${allocationId}/trades`, data),
+      removeTrade: (tradeId: number | string) => del<void>(`/admin/bot-trades/${tradeId}`),
+    },
   },
 };
 
@@ -786,6 +1020,14 @@ export const qk = {
     cards: (search?: string, status?: string) => ["admin", "cards", search ?? "", status ?? "all"] as const,
     cardStats: ["admin", "cards", "stats"] as const,
     card: (id: string | number) => ["admin", "cards", id] as const,
+    crypto: ["admin", "crypto"] as const,
+    orders: (search?: string, status?: string) => ["admin", "orders", search ?? "", status ?? "all"] as const,
+    traders: ["admin", "traders"] as const,
+    traderTrades: (id: number | string) => ["admin", "traders", id, "trades"] as const,
+    copyFollows: ["admin", "copy-follows"] as const,
+    bots: ["admin", "bots"] as const,
+    botAllocations: ["admin", "bot-allocations"] as const,
+    botTrades: (id: number | string) => ["admin", "bot-allocations", id, "trades"] as const,
     user: (id: string) => ["admin", "users", id] as const,
     userSessions: (id: string) => ["admin", "users", id, "sessions"] as const,
     userReferrals: (id: string) => ["admin", "users", id, "referrals"] as const,
@@ -800,4 +1042,11 @@ export const qk = {
   testimonials: ["testimonials"] as const,
   myCards: ["cards", "mine"] as const,
   cardSettings: ["cards", "settings"] as const,
+  myOrders: (symbol?: string) => ["orders", "mine", symbol ?? ""] as const,
+  traders: ["traders"] as const,
+  trader: (id: number | string) => ["traders", id] as const,
+  myFollows: ["copy-trading", "follows"] as const,
+  bots: ["bots"] as const,
+  myBotAllocations: ["bot-trading", "allocations"] as const,
+  myBotHistory: ["bot-trading", "history"] as const,
 };

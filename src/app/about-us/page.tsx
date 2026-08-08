@@ -6,7 +6,7 @@ import ChatWidget from "@/components/ChatWidget";
 import { INNER_PAGES } from "@/data/innerPages";
 
 export const metadata: Metadata = {
-  title: "About Us | Swan Trade Capital",
+  title: "About Us",
   description:
     "We combine transparent market access, intelligent analytics, and human support—so you can trade and invest with a clearer picture of risk and opportunity.",
 };

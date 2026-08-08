@@ -49,20 +49,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div className="absolute -inset-6 -z-10 rounded-full bg-[#5b7cff]/25 blur-2xl" />
             </div>
-            {/* floating chips */}
-            <div className="absolute left-[8%] top-[18%] h-8 w-24 rounded-lg bg-brand-deepnavy/90 shadow-lg blur-[1px]" />
-            <div className="absolute right-[6%] top-[26%] h-8 w-28 rounded-lg bg-brand-navy/80 shadow-lg blur-[1.5px]" />
-            <div className="absolute bottom-[16%] left-[16%] h-8 w-20 rounded-lg bg-brand-navy/70 shadow-lg blur-[2px]" />
-            <div className="absolute bottom-[24%] right-[14%] h-7 w-16 rounded-md bg-[#d4d9e5] shadow blur-[2px]" />
-            <div className="absolute left-[36%] top-[6%] h-6 w-14 rounded-md bg-[#d4d9e5] shadow blur-[2px]" />
+            {/* floating chips — swap to lighter shades in dark mode so they don't disappear into the bg */}
+            <div className="absolute left-[8%] top-[18%] h-8 w-24 rounded-lg bg-brand-deepnavy/90 shadow-lg blur-[1px] dark:bg-slate-700/70" />
+            <div className="absolute right-[6%] top-[26%] h-8 w-28 rounded-lg bg-brand-navy/80 shadow-lg blur-[1.5px] dark:bg-slate-700/60" />
+            <div className="absolute bottom-[16%] left-[16%] h-8 w-20 rounded-lg bg-brand-navy/70 shadow-lg blur-[2px] dark:bg-slate-700/50" />
+            <div className="absolute bottom-[24%] right-[14%] h-7 w-16 rounded-md bg-[#d4d9e5] shadow blur-[2px] dark:bg-slate-500/60" />
+            <div className="absolute left-[36%] top-[6%] h-6 w-14 rounded-md bg-[#d4d9e5] shadow blur-[2px] dark:bg-slate-500/60" />
             {/* avatar dots */}
-            <div className="absolute right-[26%] top-[8%] h-8 w-8 rounded-full bg-[#c9d1e0] shadow blur-[1px]" />
-            <div className="absolute bottom-[8%] left-[38%] h-7 w-7 rounded-full bg-[#c9d1e0] shadow blur-[1.5px]" />
-            <div className="absolute left-[24%] top-[34%] h-6 w-6 rounded-full bg-[#d4d9e5] shadow blur-[2px]" />
+            <div className="absolute right-[26%] top-[8%] h-8 w-8 rounded-full bg-[#c9d1e0] shadow blur-[1px] dark:bg-slate-500/70" />
+            <div className="absolute bottom-[8%] left-[38%] h-7 w-7 rounded-full bg-[#c9d1e0] shadow blur-[1.5px] dark:bg-slate-500/60" />
+            <div className="absolute left-[24%] top-[34%] h-6 w-6 rounded-full bg-[#d4d9e5] shadow blur-[2px] dark:bg-slate-500/60" />
           </div>
 
           <h1 className="font-montserrat text-[28px] font-bold text-brand-navy dark:text-primary dark:text-white sm:text-[34px]">
-            Welcome to {companyName}
+            {companyName ? `Welcome to ${companyName}` : "Welcome"}
           </h1>
           <p className="mt-4 max-w-[440px] text-[15px] leading-[1.7] text-brand-gray dark:text-muted dark:text-slate-400">
             Our platform offers secure trading, real-time market data, and
@@ -96,7 +96,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Copyright — stays at the bottom on mobile too via normal flow. */}
       <p className="w-full pb-5 text-center text-[12.5px] text-[#99a0ac] lg:absolute lg:bottom-5 lg:left-0 lg:right-0">
-        © {new Date().getFullYear()} {companyName}. All rights reserved.
+        © {new Date().getFullYear()}{companyName ? ` ${companyName}. All rights reserved.` : ""}
       </p>
     </main>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -14,51 +14,104 @@ import {
   DollarSign,
   Settings,
   X,
+  Loader2,
 } from "lucide-react";
-import { api, qk } from "@/lib/api";
-import { TRADERS } from "@/lib/tradingData";
-import { useCopyTrading } from "@/lib/useCopyTrading";
+import { api, qk, type Trader, type CopyFollow } from "@/lib/api";
 
 function fmtUsd(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
 export default function TraderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const qc = useQueryClient();
   const { id } = use(params);
-  const trader = useMemo(() => TRADERS.find((t) => t.id === id), [id]);
-  if (!trader) notFound();
+  const traderId = Number(id);
 
+  const { data, isLoading, isError } = useQuery({
+    queryKey: qk.trader(traderId),
+    queryFn: () => api.traders.get(traderId),
+    enabled: Number.isFinite(traderId),
+  });
   const { data: wallet } = useQuery({ queryKey: qk.wallet, queryFn: () => api.wallet.summary() });
-  const { state, follow, unfollow, update } = useCopyTrading();
-  const cfg = state[trader.id];
-  const following = Boolean(cfg);
+  const { data: follows = [] } = useQuery({ queryKey: qk.myFollows, queryFn: () => api.copyTrading.myFollows() });
+
   const [showSettings, setShowSettings] = useState(false);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: qk.trader(traderId) });
+    qc.invalidateQueries({ queryKey: qk.myFollows });
+    qc.invalidateQueries({ queryKey: qk.traders });
+  };
+
+  const followMut = useMutation({
+    mutationFn: () => api.copyTrading.follow(traderId),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Now following");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unfollowMut = useMutation({
+    mutationFn: () => api.copyTrading.unfollow(traderId),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Unfollowed");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: (data: { copyPercent: number; maxPerTrade: number; dailyLimit: number }) =>
+      api.copyTrading.update(traderId, data),
+    onSuccess: () => {
+      invalidate();
+      setShowSettings(false);
+      toast.success("Copy settings updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-muted">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+  if (isError || !data) {
+    notFound();
+  }
+  const trader: Trader = data.trader;
+  const recentTrades = data.recentTrades;
+  const follow = follows.find((f) => f.traderId === trader.id) ?? null;
+  const following = Boolean(follow);
 
   return (
     <div className="mx-auto max-w-[1200px]">
       <Link href="/copy-trading" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-secondary hover:text-brand-red">
-        <ArrowLeft className="h-4 w-4" />
-        Back to Copy Trading
+        <ArrowLeft className="h-4 w-4" /> Back to Copy Trading
       </Link>
 
       <div className="mt-4 rounded-2xl border bg-card p-6 shadow-sm">
         <div className="flex flex-wrap items-start gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={trader.avatar} alt={trader.name} className="h-20 w-20 rounded-full object-cover" />
+          {trader.avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={trader.avatarUrl} alt={trader.name} className="h-20 w-20 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-red/10 text-[24px] font-bold text-brand-red">
+              {trader.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1">
             <h1 className="font-montserrat text-[24px] font-bold text-primary">{trader.name}</h1>
             <p className="text-[13px] text-muted">@{trader.username}</p>
             <div className="mt-2 flex flex-wrap gap-4 text-[12px] text-secondary">
-              <span className="inline-flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" /> {trader.followers.toLocaleString()} followers
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> {trader.winRate}% win rate
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <DollarSign className="h-3.5 w-3.5" /> Min entry {fmtUsd(trader.minEntry)}
-              </span>
+              <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {trader.followers.toLocaleString()} followers</span>
+              <span className="inline-flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> {trader.winRate}% win rate</span>
+              <span className="inline-flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" /> Min entry {fmtUsd(Number(trader.minEntry))}</span>
             </div>
+            {trader.bio && <p className="mt-3 text-[13px] text-secondary">{trader.bio}</p>}
           </div>
           <div className="flex gap-2">
             {following ? (
@@ -70,10 +123,7 @@ export default function TraderDetailPage({ params }: { params: Promise<{ id: str
                   <Settings className="h-4 w-4" /> Copy Settings
                 </button>
                 <button
-                  onClick={() => {
-                    unfollow(trader.id);
-                    toast.success(`Unfollowed ${trader.name}`);
-                  }}
+                  onClick={() => unfollowMut.mutate()}
                   className="rounded-lg border px-3 py-2 text-[13px] font-semibold text-secondary hover:border-red-500 hover:text-red-500"
                 >
                   Unfollow
@@ -81,10 +131,7 @@ export default function TraderDetailPage({ params }: { params: Promise<{ id: str
               </>
             ) : (
               <button
-                onClick={() => {
-                  follow(trader.id);
-                  toast.success(`Now copying ${trader.name}`);
-                }}
+                onClick={() => followMut.mutate()}
                 className="rounded-lg bg-brand-red px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-darkred"
               >
                 Follow Trader
@@ -96,15 +143,26 @@ export default function TraderDetailPage({ params }: { params: Promise<{ id: str
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
         <div className="space-y-6">
-          <StatsCard trader={trader} />
-          {cfg && (
+          <div className="rounded-2xl border bg-card p-5 shadow-sm">
+            <h3 className="font-montserrat text-[16px] font-bold text-primary">Performance</h3>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Stat label="Total Trades" value={trader.totalTrades.toLocaleString()} />
+              <Stat label="Wins" value={trader.wins.toLocaleString()} accent="text-emerald-500" />
+              <Stat label="Losses" value={trader.losses.toLocaleString()} accent="text-red-500" />
+              <Stat label="Win Rate" value={`${trader.winRate}%`} accent="text-emerald-500" />
+              <Stat label="Followers" value={trader.followers.toLocaleString()} />
+              <Stat label="Total Profit" value={`+${fmtUsd(Number(trader.totalProfit))}`} accent="text-emerald-500" />
+            </div>
+          </div>
+
+          {follow && (
             <div className="rounded-2xl border bg-card p-5 shadow-sm">
               <h3 className="font-montserrat text-[16px] font-bold text-primary">Your Copy Settings</h3>
               <div className="mt-3 grid grid-cols-2 gap-3 text-[13px]">
-                <SettingRow label="Copy %" value={`${cfg.copyPercent}%`} />
-                <SettingRow label="Funded" value={fmtUsd(cfg.fundedAmount)} />
-                <SettingRow label="Max/Trade" value={fmtUsd(cfg.maxPerTrade)} />
-                <SettingRow label="Daily Limit" value={fmtUsd(cfg.dailyLimit)} />
+                <Stat label="Copy %" value={`${follow.copyPercent}%`} />
+                <Stat label="Funded" value={fmtUsd(Number(follow.fundedAmount))} />
+                <Stat label="Max/Trade" value={fmtUsd(Number(follow.maxPerTrade))} />
+                <Stat label="Daily Limit" value={fmtUsd(Number(follow.dailyLimit))} />
               </div>
             </div>
           )}
@@ -113,34 +171,22 @@ export default function TraderDetailPage({ params }: { params: Promise<{ id: str
         <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <h3 className="font-montserrat text-[16px] font-bold text-primary">Recent Trades</h3>
           <div className="mt-3 divide-y">
-            {trader.recentTrades.map((t, i) => (
-              <div key={i} className="flex items-center justify-between py-3 text-[13px]">
+            {recentTrades.length === 0 && (
+              <p className="py-6 text-center text-[13px] text-muted">No trades recorded yet.</p>
+            )}
+            {recentTrades.map((t) => (
+              <div key={t.id} className="flex items-center justify-between py-3 text-[13px]">
                 <div>
                   <p className="font-semibold text-primary">{t.pair}</p>
-                  <p
-                    className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
-                      t.direction === "RISE" ? "text-emerald-500" : "text-red-500"
-                    }`}
-                  >
-                    {t.direction === "RISE" ? (
-                      <ArrowUpRight className="h-3 w-3" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3" />
-                    )}
+                  <p className={`inline-flex items-center gap-1 text-[11px] font-semibold ${t.direction === "RISE" ? "text-emerald-500" : "text-red-500"}`}>
+                    {t.direction === "RISE" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                     {t.direction}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${t.result === "WIN" ? "text-emerald-500" : "text-red-500"}`}>
-                    {t.result}
-                  </p>
-                  <p
-                    className={`text-[12px] font-semibold ${
-                      t.profit >= 0 ? "text-emerald-500" : "text-red-500"
-                    }`}
-                  >
-                    {t.profit >= 0 ? "+" : ""}
-                    {fmtUsd(Math.round(t.profit))}
+                  <p className={`font-semibold ${t.result === "WIN" ? "text-emerald-500" : "text-red-500"}`}>{t.result}</p>
+                  <p className={`text-[12px] font-semibold ${Number(t.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                    {Number(t.profit) >= 0 ? "+" : ""}{fmtUsd(Math.round(Number(t.profit)))}
                   </p>
                 </div>
               </div>
@@ -149,51 +195,24 @@ export default function TraderDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {showSettings && cfg && (
+      {showSettings && follow && (
         <SettingsModal
-          initial={cfg}
+          initial={follow}
           available={wallet?.balance ?? 0}
+          pending={updateMut.isPending}
           onClose={() => setShowSettings(false)}
-          onSave={(next) => {
-            update(trader.id, next);
-            setShowSettings(false);
-            toast.success("Copy settings updated");
-          }}
+          onSave={(next) => updateMut.mutate(next)}
         />
       )}
     </div>
   );
 }
 
-function StatsCard({ trader }: { trader: (typeof TRADERS)[number] }) {
-  const rows = [
-    { label: "Total Trades", value: trader.totalTrades.toLocaleString() },
-    { label: "Wins", value: trader.wins.toLocaleString(), accent: "text-emerald-500" },
-    { label: "Losses", value: trader.losses.toLocaleString(), accent: "text-red-500" },
-    { label: "Win Rate", value: `${trader.winRate}%`, accent: "text-emerald-500" },
-    { label: "Followers", value: trader.followers.toLocaleString() },
-    { label: "Total Profit", value: `+${fmtUsd(trader.totalProfit)}`, accent: "text-emerald-500" },
-  ];
-  return (
-    <div className="rounded-2xl border bg-card p-5 shadow-sm">
-      <h3 className="font-montserrat text-[16px] font-bold text-primary">Performance</h3>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        {rows.map((r) => (
-          <div key={r.label} className="rounded-lg bg-elevated p-3">
-            <p className="text-[11px] uppercase tracking-wider text-muted">{r.label}</p>
-            <p className={`mt-1 font-montserrat text-[16px] font-bold ${r.accent ?? "text-primary"}`}>{r.value}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SettingRow({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="rounded-lg bg-elevated p-3">
       <p className="text-[11px] uppercase tracking-wider text-muted">{label}</p>
-      <p className="mt-1 font-semibold text-primary">{value}</p>
+      <p className={`mt-1 font-montserrat text-[16px] font-bold ${accent ?? "text-primary"}`}>{value}</p>
     </div>
   );
 }
@@ -203,38 +222,37 @@ function SettingsModal({
   available,
   onClose,
   onSave,
+  pending,
 }: {
-  initial: { copyPercent: number; maxPerTrade: number; dailyLimit: number; fundedAmount: number };
+  initial: CopyFollow;
   available: number;
   onClose: () => void;
   onSave: (next: { copyPercent: number; maxPerTrade: number; dailyLimit: number }) => void;
+  pending: boolean;
 }) {
   const [copyPercent, setCopyPercent] = useState(initial.copyPercent);
-  const [maxPerTrade, setMaxPerTrade] = useState(initial.maxPerTrade);
-  const [dailyLimit, setDailyLimit] = useState(initial.dailyLimit);
+  const [maxPerTrade, setMaxPerTrade] = useState(Number(initial.maxPerTrade));
+  const [dailyLimit, setDailyLimit] = useState(Number(initial.dailyLimit));
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-montserrat text-[18px] font-bold text-primary">Edit Copy Settings</h3>
-          <button onClick={onClose} className="text-muted hover:text-primary">
-            <X className="h-5 w-5" />
-          </button>
+          <button onClick={onClose} className="text-muted hover:text-primary"><X className="h-5 w-5" /></button>
         </div>
         <div className="mt-4 space-y-3">
           <div className="rounded-lg bg-elevated p-3 text-[12px]">
-            <div className="flex justify-between text-muted">
-              <span>Available Balance</span>
-              <span className="font-semibold text-primary">{fmtUsd(available)}</span>
-            </div>
+            <div className="flex justify-between text-muted"><span>Available Balance</span><span className="font-semibold text-primary">{fmtUsd(available)}</span></div>
           </div>
           <NumField label="Copy %" value={copyPercent} onChange={setCopyPercent} />
           <NumField label="Max per Trade (USD)" value={maxPerTrade} onChange={setMaxPerTrade} />
           <NumField label="Daily Limit (USD)" value={dailyLimit} onChange={setDailyLimit} />
           <button
             onClick={() => onSave({ copyPercent, maxPerTrade, dailyLimit })}
-            className="w-full rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2.5 text-[14px] font-bold text-white shadow-sm hover:brightness-110"
+            disabled={pending}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2.5 text-[14px] font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
           >
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Changes
           </button>
         </div>
@@ -243,15 +261,7 @@ function SettingsModal({
   );
 }
 
-function NumField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (n: number) => void;
-}) {
+function NumField({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <div>
       <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted">{label}</label>

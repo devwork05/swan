@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bot,
   DollarSign,
@@ -17,23 +17,56 @@ import {
   Square,
   ArrowUpRight,
   ArrowDownRight,
+  Loader2,
 } from "lucide-react";
-import { api, qk } from "@/lib/api";
-import { BOTS, type TradingBot } from "@/lib/tradingData";
-import { useBotTrading } from "@/lib/useBotTrading";
+import { api, qk, type TradingBot, type BotTradeRecord } from "@/lib/api";
 
 function fmtUsd(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
 export default function BotTradingPage() {
+  const qc = useQueryClient();
   const { data: wallet } = useQuery({ queryKey: qk.wallet, queryFn: () => api.wallet.summary() });
-  const { allocations, history, start, stop, recordTrade } = useBotTrading();
+  const { data: bots = [], isLoading: loadingBots } = useQuery({ queryKey: qk.bots, queryFn: () => api.bots.list() });
+  const { data: allocations = [] } = useQuery({
+    queryKey: qk.myBotAllocations,
+    queryFn: () => api.botTrading.myAllocations(),
+  });
+  const { data: history = [] } = useQuery({
+    queryKey: qk.myBotHistory,
+    queryFn: () => api.botTrading.history(),
+  });
+
   const [starting, setStarting] = useState<TradingBot | null>(null);
 
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: qk.myBotAllocations });
+    qc.invalidateQueries({ queryKey: qk.myBotHistory });
+  };
+
+  const startMut = useMutation({
+    mutationFn: (input: { botId: number; amount: number; pair: string }) => api.botTrading.start(input),
+    onSuccess: () => {
+      invalidate();
+      setStarting(null);
+      toast.success("Bot started");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const stopMut = useMutation({
+    mutationFn: (allocationId: number) => api.botTrading.stop(allocationId),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Bot stopped");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const active = allocations.filter((a) => a.status === "ACTIVE");
-  const totalInvested = active.reduce((s, a) => s + a.amount, 0);
-  const totalPnl = history.reduce((s, t) => s + t.profit, 0);
+  const totalInvested = active.reduce((s, a) => s + Number(a.amount), 0);
+  const totalPnl = history.reduce((s, t) => s + Number(t.profit), 0);
   const wins = history.filter((t) => t.result === "WIN").length;
   const winRate = history.length > 0 ? Math.round((wins / history.length) * 100) : 0;
 
@@ -80,20 +113,18 @@ export default function BotTradingPage() {
               </thead>
               <tbody>
                 {active.map((a) => (
-                  <tr key={`${a.botId}-${a.startedAt}`} className="border-b last:border-none">
+                  <tr key={a.id} className="border-b last:border-none">
                     <td className="px-4 py-3 font-semibold text-primary">{a.botName}</td>
                     <td className="px-4 py-3 text-secondary">{a.pair}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-primary">{fmtUsd(a.amount)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-primary">{fmtUsd(Number(a.amount))}</td>
                     <td className="px-4 py-3 text-right text-muted">
-                      {Math.max(1, Math.round((Date.now() - a.startedAt) / 60_000))}m
+                      {Math.max(1, Math.round((Date.now() - new Date(a.createdAt).getTime()) / 60_000))}m
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => {
-                          stop(a.botId, a.startedAt);
-                          toast.success(`Stopped ${a.botName}`);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-[12px] font-semibold text-secondary hover:border-red-500 hover:text-red-500"
+                        onClick={() => stopMut.mutate(a.id)}
+                        disabled={stopMut.isPending}
+                        className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-[12px] font-semibold text-secondary hover:border-red-500 hover:text-red-500 disabled:opacity-60"
                       >
                         <Square className="h-3 w-3" /> Stop
                       </button>
@@ -139,7 +170,13 @@ export default function BotTradingPage() {
           </span>
         </div>
         <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {BOTS.map((b) => (
+          {loadingBots && (
+            <div className="col-span-full flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted" /></div>
+          )}
+          {!loadingBots && bots.length === 0 && (
+            <p className="col-span-full py-8 text-center text-subtle">No trading bots configured yet.</p>
+          )}
+          {bots.map((b) => (
             <BotCard key={b.id} bot={b} onStart={() => setStarting(b)} />
           ))}
         </div>
@@ -148,24 +185,9 @@ export default function BotTradingPage() {
       <section className="mt-8 rounded-2xl border bg-card p-6 shadow-sm">
         <h3 className="font-montserrat text-[16px] font-bold text-primary">How Bot Trading Works</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Step
-            n={1}
-            icon={Bot}
-            title="Pick a Bot"
-            body="Each bot follows a different strategy — trend, mean-reversion, or volatility. Pick one that matches your risk appetite."
-          />
-          <Step
-            n={2}
-            icon={Zap}
-            title="Fund It"
-            body="Allocate an amount above the minimum and choose one of the bot's supported pairs to trade."
-          />
-          <Step
-            n={3}
-            icon={TrendingUp}
-            title="Let it Run"
-            body="The bot trades 24/7. You can stop it any time, and full history is one click away."
-          />
+          <Step n={1} icon={Bot} title="Pick a Bot" body="Each bot follows a different strategy. Pick one that matches your risk appetite." />
+          <Step n={2} icon={Zap} title="Fund It" body="Allocate an amount above the minimum and choose one of the bot's supported pairs to trade." />
+          <Step n={3} icon={TrendingUp} title="Let it Run" body="The bot trades 24/7. You can stop it any time, and full history is one click away." />
         </div>
       </section>
 
@@ -173,41 +195,16 @@ export default function BotTradingPage() {
         <StartModal
           bot={starting}
           available={wallet?.balance ?? 0}
+          pending={startMut.isPending}
           onClose={() => setStarting(null)}
-          onConfirm={({ amount, pair }) => {
-            const alloc = start({ botId: starting.id, botName: starting.name, amount, pair });
-            const profit = Math.round((Math.random() * 40 - 10) * (amount / 100));
-            recordTrade({
-              botId: alloc.botId,
-              botName: alloc.botName,
-              pair,
-              direction: Math.random() > 0.5 ? "RISE" : "FALL",
-              result: profit >= 0 ? "WIN" : "LOSS",
-              profit,
-              amount,
-            });
-            setStarting(null);
-            toast.success(`${starting.name} started`);
-          }}
+          onConfirm={({ amount, pair }) => startMut.mutate({ botId: starting.id, amount, pair })}
         />
       )}
     </div>
   );
 }
 
-/* ---------- Sub-components ---------- */
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accent?: string;
-}) {
+function StatCard({ label, value, icon: Icon, accent }: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; accent?: string }) {
   return (
     <div className="rounded-2xl border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -222,7 +219,7 @@ function StatCard({
 }
 
 function BotCard({ bot, onStart }: { bot: TradingBot; onStart: () => void }) {
-  const points = useMemo(() => bot.spark, [bot.spark]);
+  const points = useMemo(() => (bot.spark && bot.spark.length > 1 ? bot.spark : [100, 105, 108, 106, 111, 115, 118]), [bot.spark]);
   const min = Math.min(...points);
   const max = Math.max(...points);
   const range = Math.max(1, max - min);
@@ -248,12 +245,10 @@ function BotCard({ bot, onStart }: { bot: TradingBot; onStart: () => void }) {
             <p className="text-[11px] text-muted">{bot.strategy}</p>
           </div>
         </div>
-        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-500">
-          {bot.winRate}%
-        </span>
+        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-500">{bot.winRate}%</span>
       </div>
 
-      <p className="mt-3 text-[12px] text-secondary">{bot.description}</p>
+      {bot.description && <p className="mt-3 text-[12px] text-secondary">{bot.description}</p>}
 
       <div className="mt-3 h-[60px] w-full">
         <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-full w-full">
@@ -264,30 +259,27 @@ function BotCard({ bot, onStart }: { bot: TradingBot; onStart: () => void }) {
       <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
         <div className="rounded-lg bg-elevated p-2">
           <p className="text-muted">30D Perf</p>
-          <p className="font-semibold text-emerald-500">+{bot.performance30d}%</p>
+          <p className="font-semibold text-emerald-500">+{Number(bot.performance30d)}%</p>
         </div>
         <div className="rounded-lg bg-elevated p-2">
           <p className="text-muted">Min Invest</p>
-          <p className="font-semibold text-primary">{fmtUsd(bot.minInvestment)}</p>
+          <p className="font-semibold text-primary">{fmtUsd(Number(bot.minInvestment))}</p>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1">
         {bot.pairs.slice(0, 4).map((p) => (
-          <span key={p} className="rounded-md bg-elevated px-2 py-0.5 text-[10px] font-semibold text-secondary">
-            {p}
-          </span>
+          <span key={p} className="rounded-md bg-elevated px-2 py-0.5 text-[10px] font-semibold text-secondary">{p}</span>
         ))}
         {bot.pairs.length > 4 && (
-          <span className="rounded-md bg-elevated px-2 py-0.5 text-[10px] font-semibold text-muted">
-            +{bot.pairs.length - 4}
-          </span>
+          <span className="rounded-md bg-elevated px-2 py-0.5 text-[10px] font-semibold text-muted">+{bot.pairs.length - 4}</span>
         )}
       </div>
 
       <button
         onClick={onStart}
-        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2 text-[13px] font-bold text-white hover:brightness-110"
+        disabled={bot.pairs.length === 0}
+        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2 text-[13px] font-bold text-white hover:brightness-110 disabled:opacity-50"
       >
         <Play className="h-4 w-4" /> Start Bot
         <ArrowRight className="h-4 w-4" />
@@ -296,23 +288,11 @@ function BotCard({ bot, onStart }: { bot: TradingBot; onStart: () => void }) {
   );
 }
 
-function Step({
-  n,
-  icon: Icon,
-  title,
-  body,
-}: {
-  n: number;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  body: string;
-}) {
+function Step({ n, icon: Icon, title, body }: { n: number; icon: React.ComponentType<{ className?: string }>; title: string; body: string }) {
   return (
     <div className="rounded-xl border bg-elevated p-4">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-red text-white text-[13px] font-bold">
-          {n}
-        </div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-red text-white text-[13px] font-bold">{n}</div>
         <Icon className="h-4 w-4 text-brand-red" />
         <p className="font-semibold text-primary">{title}</p>
       </div>
@@ -321,92 +301,54 @@ function Step({
   );
 }
 
-function TradeRow({
-  row,
-}: {
-  row: {
-    botName: string;
-    pair: string;
-    direction: "RISE" | "FALL";
-    result: "WIN" | "LOSS";
-    profit: number;
-    at: number;
-  };
-}) {
+function TradeRow({ row }: { row: BotTradeRecord }) {
+  const profit = Number(row.profit);
   return (
     <tr className="border-b last:border-none">
       <td className="px-4 py-3 font-semibold text-primary">{row.botName}</td>
       <td className="px-4 py-3 text-secondary">{row.pair}</td>
       <td className="px-4 py-3 text-right">
-        <span
-          className={`inline-flex items-center gap-1 text-[12px] font-semibold ${
-            row.direction === "RISE" ? "text-emerald-500" : "text-red-500"
-          }`}
-        >
+        <span className={`inline-flex items-center gap-1 text-[12px] font-semibold ${row.direction === "RISE" ? "text-emerald-500" : "text-red-500"}`}>
           {row.direction === "RISE" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
           {row.direction}
         </span>
       </td>
       <td className="px-4 py-3 text-right">
-        <span
-          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-            row.result === "WIN" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
-          }`}
-        >
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${row.result === "WIN" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
           {row.result}
         </span>
       </td>
-      <td className={`px-4 py-3 text-right font-semibold ${row.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-        {row.profit >= 0 ? "+" : ""}
-        {fmtUsd(Math.round(row.profit))}
+      <td className={`px-4 py-3 text-right font-semibold ${profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+        {profit >= 0 ? "+" : ""}{fmtUsd(Math.round(profit))}
       </td>
-      <td className="px-4 py-3 text-right text-muted">{new Date(row.at).toLocaleTimeString().slice(0, 8)}</td>
+      <td className="px-4 py-3 text-right text-muted">{new Date(row.tradedAt).toLocaleTimeString().slice(0, 8)}</td>
     </tr>
   );
 }
 
-function StartModal({
-  bot,
-  available,
-  onClose,
-  onConfirm,
-}: {
-  bot: TradingBot;
-  available: number;
-  onClose: () => void;
-  onConfirm: (v: { amount: number; pair: string }) => void;
+function StartModal({ bot, available, onClose, onConfirm, pending }: {
+  bot: TradingBot; available: number; onClose: () => void;
+  onConfirm: (v: { amount: number; pair: string }) => void; pending: boolean;
 }) {
   const [amount, setAmount] = useState<string>(String(bot.minInvestment));
-  const [pair, setPair] = useState<string>(bot.pairs[0]);
+  const [pair, setPair] = useState<string>(bot.pairs[0] ?? "");
   const num = Number(amount) || 0;
-  const invalid = num < bot.minInvestment || num > available;
+  const invalid = num < Number(bot.minInvestment) || num > available;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-montserrat text-[18px] font-bold text-primary">Start {bot.name}</h3>
-            <p className="text-[12px] text-muted">{bot.strategy}</p>
+            {bot.strategy && <p className="text-[12px] text-muted">{bot.strategy}</p>}
           </div>
-          <button onClick={onClose} className="text-muted hover:text-primary">
-            <X className="h-5 w-5" />
-          </button>
+          <button onClick={onClose} className="text-muted hover:text-primary"><X className="h-5 w-5" /></button>
         </div>
-
         <div className="mt-4 space-y-3">
           <div className="rounded-lg bg-elevated p-3 text-[12px]">
-            <div className="flex justify-between text-muted">
-              <span>Available Balance</span>
-              <span className="font-semibold text-primary">{fmtUsd(available)}</span>
-            </div>
-            <div className="flex justify-between text-muted">
-              <span>Min Investment</span>
-              <span className="font-semibold text-primary">{fmtUsd(bot.minInvestment)}</span>
-            </div>
-            <div className="flex justify-between text-muted">
-              <span>Win Rate</span>
-              <span className="font-semibold text-emerald-500">{bot.winRate}%</span>
-            </div>
+            <div className="flex justify-between text-muted"><span>Available Balance</span><span className="font-semibold text-primary">{fmtUsd(available)}</span></div>
+            <div className="flex justify-between text-muted"><span>Min Investment</span><span className="font-semibold text-primary">{fmtUsd(Number(bot.minInvestment))}</span></div>
+            <div className="flex justify-between text-muted"><span>Win Rate</span><span className="font-semibold text-emerald-500">{bot.winRate}%</span></div>
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted">Trading Pair</label>
@@ -415,11 +357,7 @@ function StartModal({
               onChange={(e) => setPair(e.target.value)}
               className="w-full rounded-lg border bg-elevated px-3 py-2 text-[13px] text-primary focus:border-brand-red focus:outline-none"
             >
-              {bot.pairs.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+              {bot.pairs.map((p) => (<option key={p} value={p}>{p}</option>))}
             </select>
           </div>
           <div>
@@ -433,9 +371,10 @@ function StartModal({
           </div>
           <button
             onClick={() => onConfirm({ amount: num, pair })}
-            disabled={invalid}
-            className="w-full rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2.5 text-[14px] font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-50"
+            disabled={pending || invalid || !pair}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-red to-brand-darkred py-2.5 text-[14px] font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-50"
           >
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
             Start Bot
           </button>
         </div>
@@ -443,3 +382,4 @@ function StartModal({
     </div>
   );
 }
+

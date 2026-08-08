@@ -94,7 +94,7 @@ export default function Footer() {
           </p>
           <div className="mt-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <p className="text-[13px] text-brand-gray dark:text-muted">
-              © {new Date().getFullYear()} {companyName}. All rights reserved.
+              © {new Date().getFullYear()}{companyName ? ` ${companyName}. All rights reserved.` : ""}
             </p>
             <p className="text-[12px] text-[#99a0ac]">
               Prices are for demonstration purposes only.

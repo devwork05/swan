@@ -26,7 +26,7 @@ export type InnerPageData = {
 export const INNER_PAGES: Record<string, InnerPageData> = {
   trading: {
     slug: "trading",
-    metaTitle: "Trading | Swan Trade Capital",
+    metaTitle: "Trading",
     heroLabel: "AI-ASSISTED TRADING",
     heroTitle: "GLOBAL MARKETS, ONE PLATFORM",
     heroSub:
@@ -93,7 +93,7 @@ export const INNER_PAGES: Record<string, InnerPageData> = {
 
   resources: {
     slug: "resources",
-    metaTitle: "Resources | Swan Trade Capital",
+    metaTitle: "Resources",
     heroLabel: "RESOURCES",
     heroTitle: "LEARN WITH AI CONTEXT",
     heroSub:
@@ -160,7 +160,7 @@ export const INNER_PAGES: Record<string, InnerPageData> = {
 
   partnership: {
     slug: "partnership",
-    metaTitle: "Partnership | Swan Trade Capital",
+    metaTitle: "Partnership",
     heroLabel: "PARTNERSHIP",
     heroTitle: "PARTNER ON AN AI PLATFORM",
     heroSub:
@@ -227,7 +227,7 @@ export const INNER_PAGES: Record<string, InnerPageData> = {
 
   "about-us": {
     slug: "about-us",
-    metaTitle: "About Us | Swan Trade Capital",
+    metaTitle: "About Us",
     heroLabel: "ABOUT US",
     heroTitle: "AI-FIRST TRADING & INVESTING",
     heroSub:

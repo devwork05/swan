@@ -20,6 +20,8 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useBrandLogo, usePublicSettings } from "@/lib/usePublicSettings";
+import { useAuth } from "@/lib/AuthContext";
+import { useWallet } from "@/lib/useWallet";
 
 const SECTIONS = [
   {
@@ -68,6 +70,18 @@ export default function UserSidebar({
   const pathname = usePathname();
   const logo = useBrandLogo();
   const { companyName } = usePublicSettings();
+  const { user } = useAuth();
+  const { wallet } = useWallet();
+
+  const displayName = user?.fullName ?? "";
+  const initials = displayName
+    .split(" ")
+    .map((s) => s[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toLowerCase() || "•";
+  const balance = wallet?.balance ?? 0;
 
   return (
     <>
@@ -94,12 +108,14 @@ export default function UserSidebar({
         <div className="mt-6 rounded-xl border bg-elevated p-4">
           <div className="flex flex-col items-center">
             <div className="relative">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-brand-red to-brand-darkred text-lg font-bold text-white">
-                ed
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-brand-red to-brand-darkred text-lg font-bold uppercase text-white">
+                {initials}
               </div>
               <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-subtle bg-emerald-500" />
             </div>
-            <h3 className="mt-3 font-montserrat text-[15px] font-semibold text-primary">ede dede</h3>
+            <h3 className="mt-3 max-w-full truncate font-montserrat text-[15px] font-semibold text-primary">
+              {displayName || " "}
+            </h3>
             <p className="text-[12px] text-muted">online</p>
             <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-card py-2 text-[13px] text-secondary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -107,7 +123,9 @@ export default function UserSidebar({
                 <path d="M2 10h20" />
               </svg>
               Balance
-              <span className="font-semibold text-primary">$0.00</span>
+              <span className="font-semibold text-primary">
+                {balance.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+              </span>
             </div>
           </div>
         </div>

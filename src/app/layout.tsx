@@ -7,7 +7,9 @@ import DynamicBrand from "@/components/DynamicBrand";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Swan Trade Capital | AI-Powered Trading & Investment Platform",
+  // Brand name is prepended at runtime by <DynamicBrand /> based on the
+  // company name saved in admin settings, so nothing hardcoded here.
+  title: "AI-Powered Trading & Investment Platform",
   description:
     "An AI-assisted trading and investment platform—analytics, execution, and support aligned with serious traders and long-term investors.",
   icons: { icon: "/assets/logo.png" },

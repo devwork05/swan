@@ -68,7 +68,7 @@ export default function Awards() {
             </h2>
             <p className="mt-5 max-w-[460px] text-[17px] leading-[1.65] text-white/85">
               With dozens of accolades and awards won over the years, discover
-              for yourself why many traders choose {companyName}.
+              for yourself why many traders choose {companyName || "us"}.
             </p>
             <a
               href="#"

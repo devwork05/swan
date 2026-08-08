@@ -5,8 +5,8 @@ import AuthLayout from "@/components/AuthLayout";
 import ResetPasswordForm from "@/components/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Swan Trade Capital | Reset Password",
-  description: "Choose a new password for your Swan Trade Capital account.",
+  title: "Reset Password",
+  description: "Choose a new password for your account.",
 };
 
 export default function ResetPasswordPage() {

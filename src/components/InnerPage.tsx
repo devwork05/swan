@@ -11,7 +11,7 @@ function Split({ section, flip }: { section: SplitSection; flip?: boolean }) {
       >
         <div className={flip ? "lg:order-2" : ""}>
           <span className="eyebrow-chip">{section.label}</span>
-          <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon sm:text-[32px] md:text-[40px]">
+          <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon dark:text-white sm:text-[32px] md:text-[40px]">
             {section.heading}
           </h2>
           <p className="mt-5 max-w-[460px] text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -26,7 +26,7 @@ function Split({ section, flip }: { section: SplitSection; flip?: boolean }) {
         <div className={`space-y-9 ${flip ? "lg:order-1" : ""}`}>
           {section.items.map((it) => (
             <div key={it.title}>
-              <h3 className="font-montserrat text-[20px] font-bold text-brand-maroon">
+              <h3 className="font-montserrat text-[20px] font-bold text-brand-maroon dark:text-white">
                 {it.title}
               </h3>
               <p className="mt-2.5 max-w-[440px] text-[15px] leading-[1.6] text-brand-gray dark:text-muted">
@@ -48,7 +48,7 @@ export default function InnerPage({ data }: { data: InnerPageData }) {
         <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-5 py-14 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-20">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">{data.heroLabel}</span>
-            <h1 className="mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon sm:text-[42px] md:text-[50px] lg:text-[56px]">
+            <h1 className="mt-6 font-montserrat text-[28px] font-bold leading-[1.08] tracking-[-0.01em] text-brand-maroon dark:text-white sm:text-[42px] md:text-[50px] lg:text-[56px]">
               {data.heroTitle}
             </h1>
             <p className="mt-6 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -87,7 +87,7 @@ export default function InnerPage({ data }: { data: InnerPageData }) {
         <div className="mx-auto max-w-[1280px] px-5 py-16 lg:px-8 lg:py-24">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">{data.processLabel}</span>
-            <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon sm:text-[32px] md:text-[40px]">
+            <h2 className="mt-5 font-montserrat text-[24px] font-bold leading-[1.12] text-brand-maroon dark:text-white sm:text-[32px] md:text-[40px]">
               {data.processHeading}
             </h2>
             <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -100,7 +100,7 @@ export default function InnerPage({ data }: { data: InnerPageData }) {
                 <p className="font-montserrat text-[40px] font-bold leading-none text-brand-red/15">
                   {String(i + 1).padStart(2, "0")}
                 </p>
-                <h3 className="mt-3 font-montserrat text-[18px] font-bold tracking-[0.06em] text-brand-maroon">
+                <h3 className="mt-3 font-montserrat text-[18px] font-bold tracking-[0.06em] text-brand-maroon dark:text-white">
                   {s.title.replace(/^\d+\.\s*/, "")}
                 </h3>
                 <p className="mt-2.5 max-w-[320px] text-[15px] leading-[1.6] text-brand-gray dark:text-muted">

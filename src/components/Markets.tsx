@@ -79,7 +79,7 @@ export default function Markets() {
       <div className="mx-auto max-w-[1280px] px-5 py-16 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-[640px] text-center">
           <span className="eyebrow-chip">MARKETS &amp; INSTRUMENTS</span>
-          <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon sm:text-[36px] md:text-[42px]">
+          <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon dark:text-white sm:text-[36px] md:text-[42px]">
             BUILD A BALANCED BOOK
           </h2>
           <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -96,8 +96,8 @@ export default function Markets() {
               onClick={() => setActive(i)}
               className={`flex-1 whitespace-nowrap rounded-[32px] px-5 py-3.5 font-montserrat text-[12px] font-bold tracking-[0.05em] transition-all ${
                 i === active
-                  ? "bg-[#efefef] text-brand-red"
-                  : "text-brand-deepnavy hover:text-brand-red"
+                  ? "bg-[#efefef] text-brand-red dark:bg-elevated"
+                  : "text-brand-deepnavy hover:text-brand-red dark:text-slate-200 dark:hover:text-brand-red"
               }`}
             >
               {t.label}
@@ -157,7 +157,7 @@ export default function Markets() {
         <div className="mt-8 text-center">
           <a
             href="#"
-            className="inline-flex items-center gap-2 font-montserrat text-[15px] font-semibold text-brand-maroon transition-colors hover:text-brand-red"
+            className="inline-flex items-center gap-2 font-montserrat text-[15px] font-semibold text-brand-maroon dark:text-white transition-colors hover:text-brand-red"
           >
             See Instruments Overview
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">

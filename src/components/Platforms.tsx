@@ -79,7 +79,7 @@ export default function Platforms() {
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
           <div className="max-w-[560px]">
             <span className="eyebrow-chip">PROFESSIONAL PLATFORMS</span>
-            <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon sm:text-[36px] md:text-[42px]">
+            <h2 className="mt-5 font-montserrat text-[26px] font-bold leading-[1.12] text-brand-maroon dark:text-white sm:text-[36px] md:text-[42px]">
               MT4, MT5 &amp; AI INSIGHTS
             </h2>
             <p className="mt-5 text-[17px] leading-[1.65] text-brand-gray dark:text-muted">
@@ -95,14 +95,14 @@ export default function Platforms() {
                 key={k}
                 onClick={() => setSelected(k)}
                 className={`flex items-center gap-2.5 rounded-[32px] px-5 py-3 transition-all ${
-                  selected === k ? "bg-[#efefef]" : "opacity-70 hover:opacity-100"
+                  selected === k ? "bg-[#efefef] dark:bg-elevated" : "opacity-70 hover:opacity-100"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={PLATFORMS[k].icon} alt={PLATFORMS[k].tab} className="h-[26px] w-[26px]" />
                 <span
                   className={`font-montserrat text-[12px] font-bold tracking-[0.04em] ${
-                    selected === k ? "text-brand-red" : "text-brand-deepnavy"
+                    selected === k ? "text-brand-red" : "text-brand-deepnavy dark:text-slate-200"
                   }`}
                 >
                   {PLATFORMS[k].tab}
@@ -118,7 +118,7 @@ export default function Platforms() {
             <div className="flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.icon} alt={p.title} className="h-[52px] w-[52px]" />
-              <h3 className="font-montserrat text-[22px] font-bold text-brand-maroon">
+              <h3 className="font-montserrat text-[22px] font-bold text-brand-maroon dark:text-white">
                 {p.title}
               </h3>
             </div>
@@ -162,7 +162,7 @@ export default function Platforms() {
 
             <a
               href="#"
-              className="mt-7 inline-flex items-center gap-2 font-montserrat text-[15px] font-semibold text-brand-maroon transition-colors hover:text-brand-red"
+              className="mt-7 inline-flex items-center gap-2 font-montserrat text-[15px] font-semibold text-brand-maroon dark:text-white transition-colors hover:text-brand-red"
             >
               Trade Now
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -198,9 +198,9 @@ export default function Platforms() {
                 {/* Candles */}
                 <div className="bg-white dark:bg-card px-4 py-5">
                   <svg viewBox="0 0 200 120" className="w-full">
-                    {/* grid */}
+                    {/* grid — semi-transparent grey so it reads on both light and dark themes */}
                     {[20, 45, 70, 95].map((y) => (
-                      <line key={y} x1="0" y1={y} x2="200" y2={y} stroke="#f0f1f3" strokeWidth="1" />
+                      <line key={y} x1="0" y1={y} x2="200" y2={y} stroke="rgba(148,163,184,0.25)" strokeWidth="1" />
                     ))}
                     {/* candles */}
                     {[
@@ -236,7 +236,7 @@ export default function Platforms() {
 
             {/* Floating badge */}
             <div className="absolute -right-2 top-10 z-20 rounded-[8px] border border-brand-border dark:border-line bg-white dark:bg-card px-4 py-3 shadow-[0_12px_30px_-10px_rgba(0,13,34,0.25)]">
-              <p className="font-montserrat text-[11px] font-bold text-brand-deepnavy">AI SIGNAL</p>
+              <p className="font-montserrat text-[11px] font-bold text-brand-deepnavy dark:text-slate-200">AI SIGNAL</p>
               <p className="mt-0.5 text-[11px] font-semibold text-[#12a594]">BUY · 87% confidence</p>
             </div>
           </div>

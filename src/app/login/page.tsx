@@ -3,8 +3,8 @@ import AuthLayout from "@/components/AuthLayout";
 import LoginForm from "@/components/LoginForm";
 
 export const metadata: Metadata = {
-  title: "Swan Trade Capital | Account Login",
-  description: "Sign in to your Swan Trade Capital account to continue.",
+  title: "Account Login",
+  description: "Sign in to your account to continue.",
 };
 
 export default function LoginPage() {

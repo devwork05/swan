@@ -51,10 +51,18 @@
   --surface-inverse: #f6f7fb;
   --border-default: #2a314a;
   --border-subtle: #1a2035;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e1;
+  --text-subtle: #94a3b8;
+}
+
+html,
+body {
+  /* Global safety net — no stray section should ever cause the page to
+     scroll horizontally on tiny screens. `clip` keeps position:sticky working
+     (unlike overflow:hidden which breaks it). */
+  overflow-x: clip;
 }
 
 html {
@@ -197,10 +205,10 @@ h6 {
   }
 }
 
-/* Dotted ring decoration */
+/* Dotted ring decoration — theme-neutral grey so it reads on both light and dark backgrounds. */
 .dotted-ring {
   background-image: repeating-conic-gradient(from 0deg,
-      rgba(1, 24, 64, 0.16) 0deg 1.2deg,
+      rgba(148, 163, 184, 0.28) 0deg 1.2deg,
       transparent 1.2deg 4deg);
   -webkit-mask-image: radial-gradient(closest-side,
       transparent 62%,
