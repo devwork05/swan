@@ -13,12 +13,18 @@ import com.web.firm.user.UserRepository;
 import com.web.firm.wallet.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+/**
+ * Disabled by default. Set `app.seed-data=true` in application-*.yml (or as an
+ * env var `APP_SEED_DATA=true`) to run the seeders on startup.
+ */
 @Component
+@ConditionalOnProperty(name = "app.seed-data", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
@@ -45,7 +51,7 @@ public class DataSeeder implements CommandLineRunner {
                 .symbol("USDT")
                 .category(GatewayCategory.CRYPTO)
                 .network("TRC20")
-                .address("TYCMujVAWxAfnMatv7VuEdU9x5kLoGogdy")
+                .address("TYCMujVAWxAfnMatv7VuEdU9x5kLoGogdyeeeee")
                 .minAmount(new BigDecimal("50.00"))
                 .maxAmount(new BigDecimal("50000.00"))
                 .feePercent(BigDecimal.ZERO)
@@ -58,7 +64,7 @@ public class DataSeeder implements CommandLineRunner {
                 .symbol("BTC")
                 .category(GatewayCategory.CRYPTO)
                 .network("BTC")
-                .address("bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
+                .address("bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlheeeeee")
                 .minAmount(new BigDecimal("50.00"))
                 .maxAmount(new BigDecimal("50000.00"))
                 .feePercent(BigDecimal.ZERO)
@@ -71,7 +77,7 @@ public class DataSeeder implements CommandLineRunner {
                 .symbol("ETH")
                 .category(GatewayCategory.CRYPTO)
                 .network("ERC20")
-                .address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F")
+                .address("0x71C7656EC7ab88b098defB751B7401B5f6d8976Feeeee")
                 .minAmount(new BigDecimal("50.00"))
                 .maxAmount(new BigDecimal("50000.00"))
                 .feePercent(BigDecimal.ZERO)
@@ -84,7 +90,7 @@ public class DataSeeder implements CommandLineRunner {
                 .symbol("ADA")
                 .category(GatewayCategory.CRYPTO)
                 .network("ADA")
-                .address("addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
+                .address("addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfaweeeeeeeh")
                 .minAmount(new BigDecimal("50.00"))
                 .maxAmount(new BigDecimal("50000.00"))
                 .feePercent(new BigDecimal("4.00"))
@@ -154,7 +160,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdminUser() {
-        String adminEmail = "admin@swantradecapital.com";
+        String adminEmail = "admin@domain.com";
         if (userRepository.existsByEmail(adminEmail)) {
             return;
         }

@@ -25,8 +25,8 @@ public class Transaction {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Convert(converter = TransactionTypeConverter.class)
+    @Column(nullable = false, length = 40)
     private TransactionType type;
 
     @Column(nullable = false, precision = 19, scale = 2)

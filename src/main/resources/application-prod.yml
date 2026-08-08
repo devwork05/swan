@@ -61,3 +61,5 @@ crypto:
 server:
   forward-headers-strategy: framework
 
+app:
+  seed-data: false

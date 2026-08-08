@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/deposit-methods/**", "/settings", "/settings/**", "/crypto/**", "/testimonials").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/deposit-methods/**", "/settings", "/settings/**", "/crypto/**", "/testimonials", "/traders", "/traders/**", "/bots", "/bots/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

@@ -5,7 +5,6 @@ import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +20,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Public read-only proxy to the external crypto pricing service (configured via
- * {@code CRYPTO_PRICE_API}) and to Binance's public {@code /api/v3/klines}
- * endpoint for historical candles. Both responses are short-cached (20s) so the
- * dashboards can poll aggressively without hammering the upstream.
+ * Public crypto endpoints. Prices are served from the DB (populated by
+ * {@link CryptoPriceScheduler} every 20 minutes) — no upstream call on the
+ * hot path. Klines still proxy to Binance since candles change every second
+ * and would be too heavy to cache in the DB; a 20-second in-memory cache
+ * keeps polling cheap.
  */
 @Slf4j
 @RestController
@@ -32,35 +32,24 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class CryptoController {
 
-    private static final Duration TTL = Duration.ofSeconds(20);
-
-    @Value("${crypto.price-api:}")
-    private String pricesUrl;
+    private static final Duration KLINES_TTL = Duration.ofSeconds(20);
 
     @Value("${crypto.klines-api:https://api.binance.com/api/v3/klines}")
     private String klinesUrl;
 
+    private final CryptoAssetRepository cryptoRepository;
     private final ObjectMapper objectMapper;
     private final WebClient webClient = WebClient.builder().build();
-    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
+    private final Map<String, CacheEntry> klinesCache = new ConcurrentHashMap<>();
 
-    /** Full list of listed cryptos with current price data. Passes through as-is. */
     @GetMapping("/prices")
-    public ResponseEntity<JsonNode> prices() {
-        if (pricesUrl == null || pricesUrl.isBlank()) {
-            log.warn("CRYPTO_PRICE_API not configured");
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(objectMapper.createArrayNode());
-        }
-        return ResponseEntity.ok(cachedJson("prices", pricesUrl));
+    public ResponseEntity<List<CryptoAssetDto>> prices() {
+        List<CryptoAssetDto> rows = cryptoRepository.findByListedTrueOrderBySortOrderAscIdAsc().stream()
+                .map(CryptoAssetDto::fromEntity)
+                .toList();
+        return ResponseEntity.ok(rows);
     }
 
-    /**
-     * Binance-shaped candlestick data.
-     * @param symbol  e.g. "BTC" — we append "USDT" to form the Binance pair.
-     * @param interval Binance interval label: 1m,5m,15m,1h,4h,1d.
-     * @param limit   max candles to return (default 200, max 1000).
-     */
     @GetMapping("/klines")
     public ResponseEntity<JsonNode> klines(
             @RequestParam String symbol,
@@ -74,25 +63,20 @@ public class CryptoController {
     }
 
     private JsonNode cachedJson(String key, String url) {
-        CacheEntry cached = cache.get(key);
-        if (cached != null && !cached.expired()) {
-            return cached.body;
-        }
+        CacheEntry cached = klinesCache.get(key);
+        if (cached != null && !cached.expired()) return cached.body;
         try {
             JsonNode fresh = webClient.get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .onErrorResume(e -> {
-                        log.warn("Upstream fetch failed for {}: {}", url, e.getMessage());
+                        log.warn("Klines fetch failed for {}: {}", url, e.getMessage());
                         return Mono.empty();
                     })
                     .block(Duration.ofSeconds(10));
-            if (fresh == null) {
-                // Fall back to stale cache if we have one; otherwise empty array so callers can render "no data".
-                return cached != null ? cached.body : objectMapper.createArrayNode();
-            }
-            cache.put(key, new CacheEntry(fresh, Instant.now().plus(TTL)));
+            if (fresh == null) return cached != null ? cached.body : objectMapper.createArrayNode();
+            klinesCache.put(key, new CacheEntry(fresh, Instant.now().plus(KLINES_TTL)));
             return fresh;
         } catch (Exception e) {
             log.warn("Failed to fetch {}: {}", url, e.getMessage());
@@ -100,10 +84,6 @@ public class CryptoController {
         }
     }
 
-    /**
-     * Callers pass a base symbol ("BTC", "ETH", "SOL"). We normalise to a Binance
-     * pair by appending "USDT" unless the caller already sent a full pair.
-     */
     private static String normalizeToPair(String s) {
         String upper = s.toUpperCase();
         List<String> quotes = List.of("USDT", "BUSD", "USDC", "BTC", "ETH");
